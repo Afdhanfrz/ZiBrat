@@ -1,0 +1,1958 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#8ace00">
+<title>ZiBrat</title>
+<!--
+  === FONT SYSTEM FIX (XOS 16 / Android system-font regression) ===
+  Root cause: several style blocks below defined --ui / --ui-font using
+  dynamic OS aliases (-apple-system, BlinkMacSystemFont, system-ui,
+  ui-sans-serif). Those aliases are resolved by the OS at render time —
+  when XOS 16 changed what its "system-ui" points to, every element using
+  that chain re-rendered with a different (heavier/bolder) typeface.
+  Fix: load explicit, versioned webfonts from Google Fonts and make ALL
+  --ui / --ui-font declarations resolve to the SAME controlled stack, with
+  no OS alias anywhere in the chain. Visual target unchanged: the rounded
+  extra-bold UI look (already hinted at in the original CSS via
+  "Nunito Sans" / "Arial Rounded MT Bold") and the condensed "brat" preview
+  look (Arial Narrow / Roboto Condensed) are preserved, just guaranteed.
+
+  === "Ketebalan" weight slider addition ===
+  Roboto Condensed is now loaded as a real variable font (wght 100..900,
+  one file, one continuous axis) instead of two static cuts. --brat now
+  tries it FIRST, ahead of the locally-installed Arial Narrow: Arial Narrow
+  only ships Regular/Bold, so at in-between weights the browser would have
+  to fake it (synthetic bold) or silently snap to the nearest real weight —
+  exactly the kind of inconsistency this whole fix exists to avoid. Roboto
+  Condensed gives every 100-step a real, distinct, non-synthetic weight,
+  identical in preview and in the exported PNG. Default weight (700) still
+  renders pixel-for-pixel like before this change.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700;800;900&family=Roboto+Condensed:wght@100..900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f4f4ee;
+  --ink:#090909;
+  --green:#8ace00;
+  --green2:#b8ff17;
+  --soft:#e8e8df;
+  /* UI font: explicit, webfont-backed, OS-independent. No system-ui / -apple-system / sans-serif as primary. */
+  --ui:"Nunito Sans","Arial Rounded MT Bold",Arial,Helvetica,sans-serif;
+  /* "Brat" preview/canvas font: explicit condensed stack, OS-independent (Roboto Condensed is web-loaded, not system-dependent). */
+  --brat:"Roboto Condensed","Arial Narrow","Liberation Sans Narrow","Nimbus Sans Narrow",Arial,sans-serif;
+  --shadow:4px 4px 0 var(--ink);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--ui);font-weight:800;letter-spacing:-.15px}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+html,body{overflow-x:hidden;max-width:100%;}
+.app{
+  max-width:560px;margin:auto;min-height:100vh;padding:12px 12px 108px;
+}
+.top{
+  position:sticky;top:0;z-index:30;
+  display:flex;align-items:flex-end;justify-content:space-between;gap:10px;
+  padding:6px 0 12px;
+  background:linear-gradient(180deg,rgba(244,244,238,.98) 78%,rgba(244,244,238,0));
+  backdrop-filter:blur(16px);
+}
+.brand{line-height:1}
+.brand .title{font-size:33px;letter-spacing:-2px;line-height:.9}
+.brand .sub{margin-top:4px;font-size:10px;opacity:.92;letter-spacing:.15px}
+.tools{display:flex;gap:8px}
+.icon-btn{
+  width:44px;height:44px;border:3px solid var(--ink);border-radius:16px;
+  background:linear-gradient(180deg,#fff 0%,#edece4 100%);
+  box-shadow:3px 3px 0 var(--ink);
+  display:grid;place-items:center;
+  transition:transform .14s ease, box-shadow .14s ease;
+}
+.icon-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.icon-btn svg{width:20px;height:20px;stroke:var(--ink);stroke-width:2.15;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.hero{
+  border:3px solid var(--ink);
+  border-radius:28px;
+  overflow:hidden;
+  background:#111;
+  box-shadow:6px 6px 0 var(--green);
+  animation:rise .42s ease both;
+}
+.hero-inner{
+  background:var(--green);
+  padding:14px;
+  min-height:300px;
+  position:relative;
+  transition:background .18s ease;
+}
+.preview-stage{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  border:3px solid var(--ink);
+  border-radius:22px;
+  background:var(--green);
+  overflow:hidden;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
+  transition:transform .16s ease, filter .16s ease, background .18s ease;
+}
+.preview-stage.flash{transform:scale(.995);filter:saturate(1.05)}
+.text-box{
+  position:absolute;
+  min-width:0;
+  min-height:64px;
+  border:2px dashed rgba(9,9,9,.28);
+  border-radius:18px;
+  color:var(--ink);
+  background:transparent;
+  padding:12px 14px 12px 14px;
+  transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  touch-action:none;
+  user-select:none;
+}
+.text-box.active{
+  border-color:rgba(9,9,9,.55);
+  box-shadow:0 0 0 2px rgba(255,255,255,.12) inset;
+}
+.text-box .content{
+  width:100%;
+  height:100%;
+  white-space:pre-wrap;
+  word-break:break-word;
+  line-height:1;
+  font-family:var(--brat);
+  font-weight:700;
+  font-style:normal;
+  letter-spacing:-.35px;
+  text-rendering:geometricPrecision;
+}
+.drag-handle{
+  position:absolute;top:8px;left:8px;
+  width:28px;height:28px;border-radius:11px;
+  display:grid;place-items:center;
+  background:rgba(9,9,9,.92);color:#fff;
+  box-shadow:2px 2px 0 var(--green);
+  font-size:12px;line-height:1;
+}
+.resize-handle{
+  position:absolute;right:4px;bottom:4px;
+  width:28px;height:28px;border-radius:12px;
+  display:grid;place-items:center;
+  background:rgba(255,255,255,.18);color:var(--ink);
+  border:2px solid rgba(9,9,9,.35);
+  backdrop-filter:blur(8px);
+  font-size:14px;
+}
+.stage-hint{
+  position:absolute;left:14px;bottom:12px;
+  background:rgba(9,9,9,.88);
+  color:#fff;
+  border-radius:999px;
+  padding:7px 10px;
+  font-size:9px;
+  letter-spacing:.15px;
+  box-shadow:2px 2px 0 var(--green);
+  pointer-events:none;
+}
+.action-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px
+}
+.action{
+  border:3px solid var(--ink);
+  border-radius:16px;
+  padding:13px 12px;
+  box-shadow:3px 3px 0 var(--ink);
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:-.15px;
+  transition:transform .14s ease, box-shadow .14s ease, background .14s ease;
+}
+.action:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.action.primary{background:var(--green)}
+.action.secondary{background:#fff}
+.section{margin-top:14px;animation:rise .42s ease both}
+.section:nth-of-type(2){animation-delay:.03s}
+.section:nth-of-type(3){animation-delay:.06s}
+.section:nth-of-type(4){animation-delay:.09s}
+.section:nth-of-type(5){animation-delay:.12s}
+.head{display:flex;justify-content:space-between;align-items:center;margin:0 2px 9px}
+.head h2{margin:0;font-size:18px;letter-spacing:-.75px}
+.badge{font-size:9px;padding:5px 8px;border:2px solid var(--ink);border-radius:999px;background:#fff}
+.card{
+  background:#fff;border:3px solid var(--ink);border-radius:22px;box-shadow:4px 4px 0 var(--ink);overflow:hidden
+}
+.pad{padding:12px}
+.control{
+  border:2px solid rgba(9,9,9,.12);
+  border-radius:18px;
+  padding:11px 12px;
+  background:#fbfbf7;
+  margin-top:9px;
+  transition:transform .14s ease, background .14s ease, border-color .14s ease;
+}
+.control:focus-within{background:#fff;border-color:rgba(138,206,0,.72);transform:translateY(-1px)}
+.label{display:flex;justify-content:space-between;align-items:center;font-size:11px;line-height:1.1;margin-bottom:8px}
+.label .value{font-size:9px;padding:4px 7px;border-radius:999px;background:var(--green);border:2px solid var(--ink)}
+.textarea{
+  width:100%;min-height:76px;resize:none;border:3px solid var(--ink);outline:0;
+  border-radius:15px;padding:12px 12px 13px;background:#f7f7f2;color:var(--ink);
+  font-size:15px;line-height:1.05;font-weight:800;letter-spacing:-.1px;
+}
+.textarea::placeholder{color:#888}
+
+body.dark{--paper:#111;--ink:#f5f5f0;--soft:#222}.dark .top{background:linear-gradient(180deg,rgba(17,17,17,.98) 78%,rgba(17,17,17,0))}.dark .card,.dark .history-item,.dark .sheet-inner{background:#181818}.dark .textarea,.dark .icon-btn,.dark .sheet-close,.dark .seg,.dark .pill{background:#222;color:#fff}.dark .seg button{color:#aaa}.dark .seg button.active{color:#111}.dark .history-item button{background:#222;color:#fff}
+
+.slider{width:100%;accent-color:var(--green);height:28px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{
+  display:flex;gap:7px;background:#efefe7;border-radius:16px;padding:4px;border:2px solid var(--ink);
+}
+.seg button{
+  flex:1;border:0;background:transparent;border-radius:12px;padding:10px 4px;
+  font-size:10px;font-weight:800;letter-spacing:-.08px;
+  color:#555;transition:transform .14s ease, background .14s ease, color .14s ease, box-shadow .14s ease;
+}
+.seg button.active{
+  background:linear-gradient(180deg,var(--green2),var(--green));
+  color:#111;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18)
+}
+.seg button:active{transform:scale(.985)}
+.pills{
+  display:flex;gap:8px;overflow:auto;padding:2px 1px 4px
+}
+.pill{
+  flex:none;border:3px solid var(--ink);border-radius:999px;background:#fff;
+  padding:10px 13px;box-shadow:3px 3px 0 var(--ink);
+  font-size:10px;white-space:nowrap;transition:transform .14s ease, background .14s ease
+}
+.pill.active{background:var(--green)}
+.pill:active{transform:translate(2px,2px)}
+.palette{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:8px
+}
+.swatch{
+  height:43px;border:3px solid var(--ink);border-radius:13px;
+  box-shadow:2px 2px 0 var(--ink);
+  transition:transform .14s ease, outline .14s ease, opacity .14s ease
+}
+.swatch.active{outline:3px solid var(--green);outline-offset:2px}
+.swatch:active{transform:scale(.97)}
+.history{display:grid;gap:8px}
+.history-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px;background:#f6f6f0;border:2px solid var(--ink);border-radius:16px;
+  transition:transform .14s ease, background .14s ease
+}
+.history-item:active{transform:translateY(1px)}
+.history-item img{
+  width:56px;height:56px;object-fit:cover;border:2px solid var(--ink);border-radius:11px;background:var(--green)
+}
+.history-item b{
+  flex:1;font-size:11px;line-height:1.05;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+.history-item button{border:2px solid var(--ink);border-radius:11px;background:#fff;padding:8px 9px;font-size:9px;box-shadow:2px 2px 0 var(--ink);font-weight:800}.history-item .fav{min-width:38px}.history-item .fav.on{background:var(--green)}
+.dock{
+  position:fixed;
+  left:9px;
+  right:9px;
+  bottom:max(10px,env(safe-area-inset-bottom));
+  width:auto;
+  max-width:520px;
+  margin-inline:auto;
+  transform:none;
+  z-index:80;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:5px;
+  padding:6px;
+  border:3px solid var(--ink);
+  border-radius:25px;
+  background:linear-gradient(180deg,#171717 0%,#0a0a0a 100%);
+  box-shadow:0 18px 36px rgba(0,0,0,.22),0 7px 0 #6ca600;
+  animation:rise .48s ease both;
+}
+.tab{
+  position:relative;border:0;background:transparent;color:#a5a5a5;border-radius:18px;height:60px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  font-size:9px;font-weight:800;letter-spacing:-.04px;
+  transition:transform .16s ease, background .16s ease, color .16s ease, box-shadow .16s ease, opacity .16s ease
+}
+.tab svg{width:24px;height:24px;stroke:currentColor;stroke-width:2.08;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.tab.active{
+  color:#0a0a0a;background:linear-gradient(180deg,#bbf51f 0%,#8ace00 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 5px 0 rgba(0,0,0,.34),0 8px 14px rgba(0,0,0,.12);
+  transform:translateY(-5px)
+}
+.tab.active::after{
+  content:"";position:absolute;bottom:5px;left:50%;width:12px;height:2px;
+  transform:translateX(-50%);border-radius:999px;background:currentColor;opacity:.5
+}
+.tab:active{transform:translateY(-2px)}
+.sheet{
+  position:fixed;inset:0;z-index:110;background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end
+}
+.sheet.open{display:flex;animation:fadeIn .16s ease both}
+.sheet-inner{
+  width:min(560px,100%);margin:auto;background:var(--paper);
+  border:3px solid var(--ink);border-bottom:0;border-radius:28px 28px 0 0;
+  padding:16px 15px max(18px,env(safe-area-inset-bottom));
+  max-height:82vh;overflow:auto;
+  box-shadow:0 -18px 40px rgba(0,0,0,.18);
+  animation:sheetUp .22s ease both
+}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sheet-title{font-size:20px;letter-spacing:-1px}
+.sheet-close{
+  border:3px solid var(--ink);border-radius:14px;background:#fff;padding:8px 11px;font-size:9px;box-shadow:3px 3px 0 var(--ink)
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.opt{
+  min-height:92px;border:3px solid var(--ink);border-radius:18px;background:var(--green);
+  padding:10px;box-shadow:3px 3px 0 var(--ink);text-align:left;
+  transition:transform .14s ease, filter .14s ease
+}
+.opt:active{transform:translateY(2px)}
+.opt small{display:block;font-size:9px;line-height:1.1;margin-top:7px}
+.help{font-size:10px;opacity:.85;line-height:1.35}
+.toast{
+  position:fixed;left:50%;bottom:102px;transform:translate(-50%,12px);
+  background:#111;color:#fff;border:2px solid var(--green);
+  border-radius:14px;padding:11px 14px;font-size:11px;
+  opacity:0;transition:.2s;z-index:120;box-shadow:3px 3px 0 var(--green)
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.flash{animation:flash .16s ease}
+@keyframes rise{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes flash{from{filter:saturate(.96)}to{filter:saturate(1.06)}}
+@media (max-width:380px){
+  .app{padding-left:10px;padding-right:10px;padding-bottom:102px}
+  .dock{left:7px;right:7px;bottom:7px;width:auto}
+  .tab{height:56px;font-size:8px;font-weight:800}
+  .tab svg{width:22px;height:22px}
+  .brand .title{font-size:30px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+
+
+:root{
+  /* Consolidated with the primary --ui declaration at the top of the file — no OS alias fallback. */
+  --ui:"Nunito Sans","Arial Rounded MT Bold",Arial,Helvetica,sans-serif;
+}
+html,body{font-family:var(--ui);font-weight:800;letter-spacing:-.12px}
+.brand .title{font-weight:800}
+.brand .sub{font-weight:800}
+.action,.mini-tool,.tab,.sheet-close,.label,.badge,.value,.seg button,.pill,.history-item button,.help{font-weight:800}
+.action.primary{font-weight:800}
+.icon-btn svg,.tab svg{stroke-width:2.5}
+.tab{font-size:8.5px;font-weight:800;letter-spacing:-.2px}
+.tab svg{width:23px;height:23px}
+.stage-hint{font-weight:800}
+.textarea{font-weight:800}
+
+
+.section .head h2{font-weight:800}
+
+@media(max-width:380px){
+  .dock{bottom:max(7px,calc(env(safe-area-inset-bottom) + 5px));width:calc(100% - 18px)}
+  .app{padding-bottom:calc(106px + env(safe-area-inset-bottom))}
+  .tab{height:56px}
+}
+</style>
+
+
+<style id="zibrat-export-preview-sync-v5">
+.text-box{
+  padding:16px 18px !important;
+}
+.text-box .content{
+  white-space:nowrap !important;
+  word-break:normal !important;
+  overflow:visible !important;
+  line-height:.84 !important;
+}
+</style>
+
+
+<style id="zibrat-ui-v7">
+/* ===== ZiBrat UI V7 ===== */
+:root{
+  /* Was a raw OS-alias stack (ui-sans-serif/system-ui/-apple-system/...) — this is the exact
+     chain that broke on XOS 16. Now points at the single controlled --ui webfont stack instead. */
+  --ui-font: var(--ui);
+}
+
+/* UI saja: tebal. Jangan ganggu font karya di .text-box */
+body, button, input, select, textarea, label,
+.top, .top *, .dock, .dock *, .card, .card *,
+.sheet, .sheet *, .history, .history *,
+.mini-tool, .icon-btn, .seg, .seg *,
+.pill, .pill *, .badge, .hint, .value{
+  font-family:var(--ui-font) !important;
+}
+
+button, label, .tab, .mini-tool, .icon-btn,
+.seg button, .pill, .badge, .value{
+  font-weight:800 !important;
+}
+
+h1,h2,h3,h4,h5,h6,
+.brand .title, .section-title, .panel-title{
+  font-weight:900 !important;
+}
+
+/* Input UI */
+input, select, textarea{
+  font-weight:800 !important;
+}
+
+/* Jangan mengubah font hasil karya */
+.text-box,
+.text-box .content{
+  font-weight:inherit;
+}
+
+/* Icon seragam: outline tebal */
+.icon-btn svg,
+.dock svg,
+.mini-tool svg,
+button svg{
+  width:20px !important;
+  height:20px !important;
+  stroke:currentColor !important;
+  stroke-width:2.6 !important;
+  fill:none !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+}
+
+/* Dock benar-benar bawah + tengah */
+.dock{
+  position:fixed !important;
+  left:50% !important;
+  right:auto !important;
+  top:auto !important;
+  bottom:max(10px, env(safe-area-inset-bottom)) !important;
+  transform:translateX(-50%) !important;
+  width:min(560px, calc(100vw - 16px)) !important;
+  max-width:calc(100vw - 16px) !important;
+  margin:0 !important;
+  z-index:9999 !important;
+}
+
+/* Hindari konten ketutup dock */
+.app{
+  padding-bottom:104px !important;
+}
+
+/* Kotak teks preview: ukuran visual mengikuti state.boxPct */
+#textBox{
+  box-sizing:border-box !important;
+}
+
+/* Di layar kecil tetap aman */
+@media (max-width:520px){
+  .dock{
+    width:calc(100vw - 16px) !important;
+  }
+  .app{
+    padding-bottom:100px !important;
+  }
+  .dock .tab{
+    font-size:10px !important;
+    font-weight:800 !important;
+  }
+}
+</style>
+
+
+<style id="zibrat-box-fix-v8">
+/* #textBox box-model already covered by zibrat-direct-brat-v10 below (identical
+   values); keep only the .content rule that v10 doesn't set. */
+#textBox .content{
+  box-sizing:border-box !important;
+  min-width:0 !important;
+  max-width:100% !important;
+}
+</style>
+
+
+<style id="zibrat-direct-brat-v10">
+/* Manipulasi langsung di preview: satu sistem saja */
+#textBox{
+  min-width:0 !important;
+  max-width:none !important;
+  box-sizing:border-box !important;
+  touch-action:none !important;
+  user-select:none !important;
+  -webkit-user-select:none !important;
+}
+#textBox .resize-handle{
+  right:4px !important;
+  bottom:4px !important;
+  width:32px !important;
+  height:32px !important;
+  display:grid !important;
+  place-items:center !important;
+  border:2px solid var(--ink) !important;
+  border-radius:12px !important;
+  background:var(--green) !important;
+  color:var(--ink) !important;
+  box-shadow:2px 2px 0 var(--ink) !important;
+  font-size:14px !important;
+  font-weight:900 !important;
+  cursor:nwse-resize !important;
+  z-index:10 !important;
+}
+.drag-handle{
+  cursor:grab !important;
+}
+#textBox.active .drag-handle{
+  cursor:grabbing !important;
+}
+</style>
+
+
+<style id="zibrat-ui-aligned-v12">
+/* V12 — preserve original ZiBrat visual language; polish hierarchy + dock only */
+:root{
+  /* Consolidated — no OS alias fallback (was the -apple-system/BlinkMacSystemFont/Segoe UI chain). */
+  --ui:"Nunito Sans","Arial Rounded MT Bold",Arial,Helvetica,sans-serif;
+  --dock-bg:#111;
+  --dock-muted:#8f8f8f;
+}
+body,button,input,textarea{font-family:var(--ui);}
+/* Keep the original hard-edged ZiBrat language, but make controls feel like one system. */
+.icon-btn,.action,.mini-tool,.sheet-close,.history-item button,.pill,.opt,.swatch,.textarea,.seg,.control,.card,.hero,.preview-stage{
+  -webkit-backdrop-filter:none;
+}
+.icon-btn,.action,.mini-tool,.sheet-close,.history-item button,.pill,.opt{
+  transition:transform .14s ease, box-shadow .14s ease, background-color .14s ease, filter .14s ease;
+}
+.icon-btn:hover,.action:hover,.mini-tool:hover,.sheet-close:hover,.history-item button:hover,.pill:hover,.opt:hover{filter:brightness(1.015)}
+/* Dock: same brutalist identity as the original, cleaner proportions and active tab. */
+.dock{
+  left:50% !important;
+  right:auto !important;
+  bottom:max(12px,env(safe-area-inset-bottom)) !important;
+  transform:translateX(-50%) !important;
+  width:min(520px,calc(100vw - 20px)) !important;
+  max-width:none !important;
+  padding:5px !important;
+  gap:4px !important;
+  border:3px solid var(--ink) !important;
+  border-radius:22px !important;
+  background:#111 !important;
+  box-shadow:5px 5px 0 var(--green), 0 14px 30px rgba(0,0,0,.18) !important;
+}
+.dock .tab{
+  height:56px !important;
+  border-radius:16px !important;
+  color:#8f8f8f !important;
+  gap:4px !important;
+  font-size:8.5px !important;
+  letter-spacing:.15px !important;
+  transform:none !important;
+}
+.dock .tab svg{width:21px !important;height:21px !important;stroke-width:2.3 !important}
+.dock .tab.active{
+  color:#0a0a0a !important;
+  background:var(--green) !important;
+  box-shadow:2px 2px 0 #000, inset 0 1px 0 rgba(255,255,255,.35) !important;
+  transform:translateY(-2px) !important;
+}
+.dock .tab.active::after{display:none !important}
+.dock .tab:active{transform:translateY(0) scale(.985) !important}
+/* Consistent section rhythm: don't redesign, just tighten the visual system. */
+.section{margin-top:13px !important}
+.section .head{margin-bottom:8px !important}
+.section .head h2{font-size:17px !important}
+.card{box-shadow:4px 4px 0 var(--ink) !important}
+.control{margin-top:8px !important;border-radius:16px !important}
+.action{border-radius:14px !important;padding:12px !important}
+.mini-tool{border-radius:10px !important}
+/* Sheet should feel like the same product, not a separate UI. */
+.sheet-inner{border-radius:24px 24px 0 0 !important;padding:15px 14px max(18px,env(safe-area-inset-bottom)) !important}
+.sheet-title{font-size:19px !important}
+.sheet-close{border-radius:12px !important}
+@media(max-width:380px){
+  .dock{width:calc(100vw - 16px) !important;bottom:max(8px,calc(env(safe-area-inset-bottom) + 5px)) !important}
+  .dock .tab{height:54px !important}
+}
+</style>
+
+
+<style id="zibrat-final-polish-v17">
+/* ===== V17: ZiBrat dock + floating save ===== */
+.dock{
+  position:fixed !important;
+  left:50% !important;
+  right:auto !important;
+  top:auto !important;
+  bottom:max(8px, env(safe-area-inset-bottom)) !important;
+  transform:translateX(-50%) !important;
+  width:min(470px, calc(100vw - 20px)) !important;
+  height:58px !important;
+  padding:4px !important;
+  display:grid !important;
+  grid-template-columns:repeat(3,1fr) !important;
+  gap:4px !important;
+  margin:0 !important;
+  z-index:9999 !important;
+  background:var(--paper) !important;
+  border:3px solid var(--ink) !important;
+  border-radius:20px !important;
+  box-shadow:4px 4px 0 var(--green), 0 10px 24px rgba(0,0,0,.14) !important;
+  animation:rise .28s ease both !important;
+}
+.dock .tab{
+  min-width:0 !important;
+  height:48px !important;
+  padding:0 4px !important;
+  border:0 !important;
+  border-radius:14px !important;
+  background:transparent !important;
+  color:var(--ink) !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:2px !important;
+  font-size:8px !important;
+  font-weight:900 !important;
+  letter-spacing:.1px !important;
+  box-shadow:none !important;
+  transform:none !important;
+  opacity:.72;
+}
+.dock .tab svg{
+  width:21px !important;
+  height:21px !important;
+  stroke:currentColor !important;
+  stroke-width:2.6 !important;
+  fill:none !important;
+}
+.dock .tab.active,
+.dock .tab:active{
+  background:var(--green) !important;
+  color:var(--ink) !important;
+  opacity:1;
+  transform:translateY(0) !important;
+  box-shadow:2px 2px 0 var(--ink) !important;
+}
+
+/* Floating save: tetap kotak khas ZiBrat, sedikit lebih lega. */
+.save-float{
+  position:fixed !important;
+  right:max(16px, calc((100vw - 470px)/2 + 4px)) !important;
+  bottom:max(84px, calc(env(safe-area-inset-bottom) + 78px)) !important;
+  width:70px !important;
+  height:70px !important;
+  padding:0 !important;
+  z-index:9998 !important;
+  border:4px solid var(--ink) !important;
+  border-radius:18px !important;
+  background:var(--green) !important;
+  color:var(--ink) !important;
+  display:grid !important;
+  place-items:center !important;
+  box-shadow:5px 5px 0 var(--ink) !important;
+  cursor:pointer;
+}
+.save-float svg{width:27px !important;height:27px !important;stroke:currentColor !important;stroke-width:2.7 !important;fill:none !important;stroke-linecap:round !important;stroke-linejoin:round !important}
+.save-float:active{transform:translate(2px,2px) !important;box-shadow:2px 2px 0 var(--ink) !important}
+
+/* Keep content clear of the compact dock. */
+.app{padding-bottom:82px !important}
+.toast{bottom:78px !important}
+
+/* Hide export action while a bottom sheet is open so it never sits over controls. */
+body:has(.sheet.open) .save-float{display:none !important}
+
+@media(max-width:380px){
+  .dock{width:calc(100vw - 14px) !important;height:56px !important;bottom:max(6px,calc(env(safe-area-inset-bottom) + 2px)) !important}
+  .dock .tab{height:46px !important;font-size:7.5px !important}
+  .dock .tab svg{width:20px !important;height:20px !important}
+  .save-float{right:14px !important;bottom:max(82px,calc(env(safe-area-inset-bottom) + 74px)) !important;width:68px !important;height:68px !important;border-radius:17px !important}
+  .app{padding-bottom:90px !important}
+}
+</style>
+
+<style id="zibrat-v23-polish">
+/* V23 — export actions lebih jelas, tetap brutalist */
+.action-row .action{min-height:48px}
+#btnCopy{background:#fff}
+#btnShare{background:#f0f0e9}
+#btnCopy:focus-visible,#btnShare:focus-visible,#btnSaveFloat:focus-visible{
+  outline:3px solid var(--green);
+  outline-offset:3px;
+}
+@media(max-width:380px){
+  .action-row{gap:7px}
+  .action-row .action{
+    padding:11px 8px !important;
+    font-size:11px !important;
+  }
+}
+</style>
+
+
+<style id="zibrat-v24-save-align">
+/* V24 — save button aligned to dock; icon-only */
+.save-float{
+  width:58px !important;
+  height:58px !important;
+  border:3px solid var(--ink) !important;
+  border-radius:16px !important;
+  box-shadow:4px 4px 0 var(--ink) !important;
+}
+.save-float svg{
+  width:25px !important;
+  height:25px !important;
+  stroke-width:2.8 !important;
+}
+@media(max-width:380px){
+  .save-float{
+    width:56px !important;
+    height:56px !important;
+    border-width:3px !important;
+    border-radius:15px !important;
+    box-shadow:4px 4px 0 var(--ink) !important;
+  }
+  .save-float svg{width:24px !important;height:24px !important}
+}
+</style>
+
+<style id="zibrat-motion-v1">
+/* ===== ZiBrat Motion System V1 ===== */
+:root{
+  --motion-fast:120ms;
+  --motion-normal:180ms;
+  --motion-smooth:240ms;
+  --motion-slow:320ms;
+  --ease-zibrat:cubic-bezier(.22,.8,.24,1);
+  --ease-snappy:cubic-bezier(.2,.9,.25,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+}
+
+/* -- Initial load entrance: header -> preview -> controls -> dock -- */
+.top{animation:zEnter var(--motion-slow) var(--ease-out) both}
+.hero{animation:zEnterScale var(--motion-slow) var(--ease-out) .04s both}
+.action-row{animation:zEnter var(--motion-slow) var(--ease-out) .08s both}
+.dock{animation:zEnterScale var(--motion-slow) var(--ease-out) .12s both}
+.save-float{animation:zEnterScale var(--motion-slow) var(--ease-out) .14s both}
+@keyframes zEnter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes zEnterScale{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* -- Section reveal, triggered once via IntersectionObserver -- */
+.section{opacity:0;transform:translateY(10px);transition:opacity var(--motion-smooth) var(--ease-out),transform var(--motion-smooth) var(--ease-out)}
+.section.z-inview{opacity:1;transform:translateY(0)}
+
+/* -- Preview update pulse: subtle, replaces plain saturate-only flash -- */
+.preview-stage.z-pulse{animation:zPulse var(--motion-normal) var(--ease-zibrat)}
+@keyframes zPulse{0%{transform:scale(.992);filter:saturate(1.04)}100%{transform:scale(1);filter:saturate(1)}}
+
+/* -- Direct manipulation: zero transition while dragging/resizing/pinching -- */
+.text-box.z-no-transition{transition:none!important}
+.text-box.z-settle{animation:zSettle 140ms var(--ease-snappy)}
+@keyframes zSettle{0%{transform:rotate(var(--z-rot,0deg)) scale(1.012)}100%{transform:rotate(var(--z-rot,0deg)) scale(1)}}
+.resize-handle{transition:transform var(--motion-fast) var(--ease-snappy)}
+.resize-handle.z-press{transform:scale(.94)}
+
+/* -- Reusable micro-interaction utility classes -- */
+.z-motion-press{transition:transform var(--motion-fast) var(--ease-snappy)}
+.z-motion-press:active{transform:scale(.98)}
+.z-motion-pop{animation:zPop 240ms var(--ease-zibrat)}
+@keyframes zPop{0%{transform:scale(1)}35%{transform:scale(.9)}70%{transform:scale(1.05)}100%{transform:scale(1)}}
+.z-motion-success{animation:zSuccessFlash var(--motion-normal) var(--ease-zibrat)}
+@keyframes zSuccessFlash{0%{filter:saturate(1)}50%{filter:saturate(1.12)}100%{filter:saturate(1)}}
+.z-motion-shake{animation:zShake 320ms var(--ease-snappy)}
+@keyframes zShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.z-motion-settle{animation:zSettle 140ms var(--ease-snappy)}
+
+/* -- Randomize: quick icon rotate, not continuous -- */
+#btnRandom svg{transition:transform var(--motion-normal) var(--ease-snappy)}
+.z-randomize-spin{animation:zRandSpin 260ms var(--ease-snappy)}
+@keyframes zRandSpin{0%{transform:rotate(0deg)}55%{transform:rotate(12deg)}100%{transform:rotate(0deg)}}
+
+/* -- Save: tiny bounce/pop on success -- */
+.save-float.z-save-pop svg{animation:zPop 240ms var(--ease-zibrat)}
+
+/* -- Undo/redo: tiny directional nudge -- */
+.z-undo-nudge{animation:zNudgeLeft 160ms var(--ease-snappy)}
+.z-redo-nudge{animation:zNudgeRight 160ms var(--ease-snappy)}
+@keyframes zNudgeLeft{0%{transform:translateX(0)}50%{transform:translateX(-2px)}100%{transform:translateX(0)}}
+@keyframes zNudgeRight{0%{transform:translateX(0)}50%{transform:translateX(2px)}100%{transform:translateX(0)}}
+
+/* -- Bottom sheet: reuse existing sheetUp keyframe with a premium ease-out -- */
+.sheet-inner{animation-name:sheetUp;animation-duration:var(--motion-slow);animation-timing-function:var(--ease-out);animation-fill-mode:both}
+
+/* -- Toast: reuse existing show/hide states, add tiny scale for polish -- */
+.toast{transition:opacity var(--motion-normal) var(--ease-zibrat),transform var(--motion-normal) var(--ease-zibrat);transform:translate(-50%,10px) scale(.96)}
+.toast.show{transform:translate(-50%,0) scale(1)}
+
+@media (prefers-reduced-motion:reduce){
+  .top,.hero,.action-row,.dock,.save-float{animation:none!important}
+  .section{transition:none!important;opacity:1!important;transform:none!important}
+  .z-motion-pop,.z-motion-success,.z-motion-shake,.z-motion-settle,.z-randomize-spin,.z-save-pop svg,.z-undo-nudge,.z-redo-nudge,.z-pulse,.z-settle{animation:none!important}
+}
+</style>
+
+<style id="zibrat-dock-v2">
+/* ===== ZiBrat Dock V2 — visual only: compact floating control console ===== */
+/* Structure/JS/IDs/data-action untouched — CSS-only redesign. */
+.dock{
+  position:fixed !important;
+  left:50% !important;
+  right:auto !important;
+  top:auto !important;
+  bottom:max(10px, env(safe-area-inset-bottom)) !important;
+  transform:translateX(-50%) !important;
+  width:min(470px, calc(100vw - 20px)) !important;
+  max-width:calc(100vw - 20px) !important;
+  height:50px !important;
+  margin:0 !important;
+  padding:4px !important;
+  display:grid !important;
+  grid-template-columns:repeat(3,1fr) !important;
+  gap:3px !important;
+  z-index:9999 !important;
+  background:var(--paper) !important;
+  border:3px solid var(--ink) !important;
+  border-radius:17px !important;
+  box-shadow:4px 4px 0 var(--green) !important;
+  animation:rise .28s ease both !important;
+}
+.dock .tab{
+  min-width:0 !important;
+  height:100% !important;
+  padding:0 6px !important;
+  border:0 !important;
+  border-radius:12px !important;
+  background:transparent !important;
+  color:var(--ink) !important;
+  opacity:.62 !important;
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:5px !important;
+  font-size:9px !important;
+  font-weight:800 !important;
+  letter-spacing:.2px !important;
+  text-transform:uppercase !important;
+  box-shadow:none !important;
+  transform:translateY(0) !important;
+  transition:transform var(--motion-fast,120ms) var(--ease-snappy,ease),
+             background-color var(--motion-fast,120ms) var(--ease-snappy,ease),
+             box-shadow var(--motion-fast,120ms) var(--ease-snappy,ease),
+             opacity var(--motion-fast,120ms) var(--ease-snappy,ease) !important;
+}
+.dock .tab svg{
+  width:19px !important;
+  height:19px !important;
+  stroke:currentColor !important;
+  stroke-width:2.4 !important;
+  fill:none !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+  flex:none !important;
+}
+.dock .tab span{
+  line-height:1 !important;
+}
+.dock .tab.active{
+  background:var(--green) !important;
+  color:var(--ink) !important;
+  opacity:1 !important;
+  box-shadow:2px 2px 0 var(--ink) !important;
+  transform:translateY(-1px) !important;
+}
+.dock .tab.active::after{display:none !important}
+.dock .tab:active{
+  background:var(--green) !important;
+  color:var(--ink) !important;
+  opacity:1 !important;
+  box-shadow:1px 1px 0 var(--ink) !important;
+  transform:translateY(1px) scale(.96) !important;
+}
+@media(max-width:380px){
+  .dock{
+    width:calc(100vw - 16px) !important;
+    height:46px !important;
+    padding:3px !important;
+    border-radius:16px !important;
+    bottom:max(8px,calc(env(safe-area-inset-bottom) + 4px)) !important;
+  }
+  .dock .tab{font-size:8px !important;gap:4px !important}
+  .dock .tab svg{width:18px !important;height:18px !important}
+}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="title">ZiBrat</div>
+      <div class="sub">bikin brat sendiri • tanpa ribet • punya lu</div>
+    </div>
+    <div class="tools">
+      <button class="icon-btn" id="btnRandom" title="Buat acak" aria-label="Buat acak">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg></button>
+      <button class="icon-btn" id="btnResetTop" title="Reset ke awal" aria-label="Reset ke awal">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner" id="heroInner">
+      <div class="preview-stage" id="stage">
+        <div class="text-box" id="textBox" aria-label="Kotak teks yang bisa dipindah">
+          <div class="drag-handle" title="Geser buat mindahin">↕</div>
+          <div class="content" id="textDisplay"></div>
+          <div class="resize-handle" title="Tarik buat gede-kecilin">↘</div>
+        </div>
+        <div class="stage-hint">geser brat untuk pindah • tarik sudut untuk ubah lebar</div>
+      </div>
+      <div class="action-row">
+        <button class="action secondary" id="btnCopy">SALIN GAMBAR</button>
+        <button class="action secondary" id="btnShare">BAGIIN</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="head">
+      <h2>teks</h2>
+      <div class="badge" id="charCount">0 huruf</div>
+    </div>
+    <div class="card pad">
+      <div class="control">
+        <div class="label"><span>teks kamu</span><span class="value">langsung tampil</span></div>
+        <textarea id="txt" class="textarea" spellcheck="false" placeholder="tulis apa aja...">i'm having a brat summer</textarea>
+      </div>
+
+      <div class="row2">
+        <div class="control">
+          <div class="label"><span>ukuran</span><span class="value" id="sizeVal">106</span></div>
+          <input id="size" class="slider" type="range" min="34" max="180" value="106">
+        </div>
+        <div class="control">
+          <div class="label"><span>rotasi</span><span class="value" id="rotVal">0°</span></div>
+          <input id="rot" class="slider" type="range" min="-12" max="12" value="0">
+        </div>
+      </div>
+
+      <div class="control">
+        <div class="label"><span>jarak huruf</span><span class="value" id="letterVal">-1</span></div>
+        <input id="letter" class="slider" type="range" min="-5" max="12" value="-1">
+      </div>
+
+      <div class="control">
+        <div class="label"><span>rata teks</span><span class="value">pilih</span></div>
+        <div class="seg" id="alignSeg">
+          <button class="active" data-align="left">KIRI</button>
+          <button data-align="center">TENGAH</button>
+          <button data-align="right">KANAN</button>
+        </div>
+      </div>
+
+      <div class="control">
+        <div class="label"><span>tebal teks</span><span class="value" id="weightVal">normal</span></div>
+        <div class="seg" id="weightSeg">
+          <button data-weight="tipis">TIPIS</button>
+          <button class="active" data-weight="normal">NORMAL</button>
+          <button data-weight="tebal">TEBAL</button>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="control">
+          <div class="label"><span>Ketebalan</span><span class="value" id="thickVal">700</span></div>
+          <input id="thickness" class="slider" type="range" min="100" max="900" step="100" value="700">
+        </div>
+        <div class="control">
+          <div class="label"><span>Jarak</span><span class="value" id="gapVal">0</span></div>
+          <input id="gap" class="slider" type="range" min="-20" max="80" step="1" value="0">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="head">
+      <h2>warna</h2>
+      <div class="badge">langsung</div>
+    </div>
+    <div class="card pad">
+      <div class="control">
+        <div class="label"><span>latar</span><span class="value" id="bgVal">#8ACE00</span></div>
+        <div class="palette" id="bgPalette"></div>
+      </div>
+      <div class="control">
+        <div class="label"><span>warna teks</span><span class="value" id="textColorVal">#050505</span></div>
+        <div class="palette" id="txtPalette"></div>
+      </div>
+      <div class="row2">
+        <div class="control">
+          <div class="label"><span>latar sendiri</span><span class="value">KODE</span></div>
+          <input id="bgHex" class="textarea" style="min-height:0;height:46px;font-size:13px;padding:10px 12px" maxlength="7" value="#8ACE00">
+        </div>
+        <div class="control">
+          <div class="label"><span>teks sendiri</span><span class="value">KODE</span></div>
+          <input id="txtHex" class="textarea" style="min-height:0;height:46px;font-size:13px;padding:10px 12px" maxlength="7" value="#050505">
+        </div>
+      </div>
+      <div class="action-row" style="margin-top:9px">
+        <button class="action primary" id="btnApplyHex">PAKAI WARNA</button>
+        <button class="action secondary" id="btnResetColors">BALIK DEFAULT</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="head">
+      <h2>lain-lain</h2>
+      <div class="badge">alat</div>
+    </div>
+    <div class="card pad">
+      <div class="control">
+        <div class="label"><span>gaya</span><span class="value">pilih</span></div>
+        <div class="pills" id="presetPills"></div>
+      </div>
+      <div class="row2">
+        <button class="action secondary" id="btnUndo">MUNDUR</button>
+        <button class="action secondary" id="btnRedo">MAJU LAGI</button>
+      </div>
+      <div class="help" style="margin-top:10px">
+        Kotak teks bisa lu geser dan lu gede-kecilin langsung di preview. Huruf BRAT tetap ramping, tapi tampilan aplikasinya dibuat tegas dan gampang dibaca.
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="head">
+      <h2>riwayat</h2>
+      <div class="badge">lokal</div>
+    </div>
+    <div class="card pad">
+      <div class="history" id="history"></div>
+    </div>
+  </section>
+</div>
+
+<button class="save-float" id="btnSaveFloat" aria-label="Simpan PNG" title="Simpan PNG">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 3v11"/>
+    <path d="M7.5 10.5L12 15l4.5-4.5"/>
+    <path d="M5 20h14"/>
+  </svg>
+</button>
+
+<nav class="dock" id="dock" aria-label="Aksi cepat ZiBrat">
+  <button class="tab" data-action="undo" aria-label="Mundur" title="Mundur">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 8H5v4"/>
+      <path d="M5.2 12A7.5 7.5 0 1 0 8 6.4"/>
+    </svg>
+    <span>UNDO</span>
+  </button>
+  <button class="tab" data-action="redo" aria-label="Maju lagi" title="Maju lagi">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M15 8h4v4"/>
+      <path d="M18.8 12A7.5 7.5 0 1 1 16 6.4"/>
+    </svg>
+    <span>REDO</span>
+  </button>
+  <button class="tab" data-action="utility" aria-label="Lainnya" title="Lainnya">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+      <circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+    </svg>
+    <span>LAINNYA</span>
+  </button>
+</nav>
+
+<div class="sheet" id="sheet">
+  <div class="sheet-inner">
+    <div class="sheet-head">
+      <div class="sheet-title" id="sheetTitle">teks</div>
+      <button class="sheet-close" id="sheetClose">TUTUP</button>
+    </div>
+    <div id="sheetBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<canvas id="exportCanvas" width="1200" height="1200" style="display:none"></canvas>
+
+<script>
+(function(){
+  const c = document.getElementById('exportCanvas');
+  const ctx = c.getContext('2d');
+  const $ = id => document.getElementById(id);
+
+  const defaults = {
+    text: "i'm having a brat summer",
+    size: 106,
+    rot: 0,
+    letter: -1,
+    align: 'left',
+    weight: 'normal',
+    fontWeight: 700, // "Ketebalan" — was hardcoded 700 everywhere; same visual default
+    gap: 0, // "Jarak" — extra px added to the existing size*0.84 line height; 0 = unchanged
+    bg: '#8ACE00',
+    txt: '#050505',
+    boxPct: 78,
+    xPct: 8,
+    yPct: 18
+  };
+
+  const presets = {
+    klasik: {size:106, rot:0, letter:-1, align:'left', weight:'normal', bg:'#8ACE00', txt:'#050505', boxPct:78, xPct:8, yPct:18, text:"i'm having a brat summer"},
+    besar: {size:146, rot:0, letter:-2, align:'center', weight:'tebal', bg:'#8ACE00', txt:'#050505', boxPct:84, xPct:8, yPct:16, text:"i want it all"},
+    kecil: {size:66, rot:0, letter:0, align:'center', weight:'normal', bg:'#b8ff17', txt:'#050505', boxPct:64, xPct:18, yPct:20, text:"whatever"},
+    lembut: {size:94, rot:0, letter:0, align:'left', weight:'normal', bg:'#d9ff32', txt:'#111111', boxPct:72, xPct:10, yPct:20, text:"easy mode"},
+    berantakan: {size:112, rot:4, letter:-2, align:'left', weight:'tebal', bg:'#8ACE00', txt:'#050505', boxPct:80, xPct:8, yPct:18, text:"too much?"}
+  };
+
+  const paletteBg = ['#8ACE00','#b8ff17','#d9ff32','#111111','#ffffff','#e9ff8a','#c8ff00','#f4f4ee','#9bff4d','#d1ff6a'];
+  const paletteTxt = ['#050505','#ffffff','#222222','#5b5b5b','#8ACE00','#ff4fd8','#5b5bff','#ff5a36','#ffd400','#00b7ff'];
+
+  const state = loadState();
+  let undoStack = [];
+  let redoStack = [];
+
+  const stage = $('stage');
+  const heroInner = $('heroInner');
+  const textBox = $('textBox');
+  const textDisplay = $('textDisplay');
+
+  function loadState(){
+    try{
+      return Object.assign({}, defaults, JSON.parse(localStorage.getItem('brat_state_v12') || '{}'));
+    }catch{
+      return {...defaults};
+    }
+  }
+  function saveState(){
+    localStorage.setItem('brat_state_v12', JSON.stringify({
+      text: state.text, size: state.size, rot: state.rot, letter: state.letter, align: state.align,
+      weight: state.weight, fontWeight: state.fontWeight, gap: state.gap, bg: state.bg, txt: state.txt,
+      boxPct: state.boxPct, xPct: state.xPct, yPct: state.yPct
+    }));
+  }
+  function snapshot(){
+    return JSON.stringify({
+      text: state.text, size: state.size, rot: state.rot, letter: state.letter, align: state.align,
+      weight: state.weight, fontWeight: state.fontWeight, gap: state.gap, bg: state.bg, txt: state.txt,
+      boxPct: state.boxPct, xPct: state.xPct, yPct: state.yPct
+    });
+  }
+  function pushUndo(){
+    undoStack.push(snapshot());
+    if(undoStack.length > 30) undoStack.shift();
+    redoStack = [];
+  }
+  function toast(msg){
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._toastT);
+    window._toastT = setTimeout(() => t.classList.remove('show'), 1500);
+  }
+  function hexOk(v){ return /^#[0-9a-fA-F]{6}$/.test((v||'').trim()); }
+  function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#039;"}[m])); }
+
+  function getStageSize(){
+    const r = stage.getBoundingClientRect();
+    return {w:r.width, h:r.height};
+  }
+
+  function getFontFamily(){
+    // Same order as --brat in CSS: the variable webfont first (real 100-900
+    // weight axis, no synthetic bold at any step), OS fonts as fallback only.
+    return '"Roboto Condensed", "Arial Narrow", "Liberation Sans Narrow", "Nimbus Sans Narrow", Arial, sans-serif';
+  }
+
+  // Guarantee the webfonts (UI + brat) are actually loaded before we read
+  // metrics with ctx.measureText() or paint text into the export canvas.
+  // Without this, the very first render (or an export fired quickly after
+  // load) can silently fall back to a system font for one frame/file —
+  // which is the same class of bug this whole fix addresses.
+  let _fontsReadyPromise = null;
+  function ensureFontsReady(){
+    if(_fontsReadyPromise) return _fontsReadyPromise;
+    _fontsReadyPromise = (async () => {
+      if(!('fonts' in document)) return;
+      try{
+        await Promise.all([
+          document.fonts.load('800 32px "Nunito Sans"'),
+          document.fonts.load('900 32px "Nunito Sans"'),
+          document.fonts.load('100 32px "Roboto Condensed"'),
+          document.fonts.load('400 32px "Roboto Condensed"'),
+          document.fonts.load('700 32px "Roboto Condensed"'),
+          document.fonts.load('900 32px "Roboto Condensed"'),
+          document.fonts.load(`${(+state.fontWeight)||700} 32px "Roboto Condensed"`)
+        ]);
+        await document.fonts.ready;
+      }catch(e){ /* webfont load failed — fall back silently to the CSS font stack */ }
+    })();
+    return _fontsReadyPromise;
+  }
+
+  function getTextStrokeWeight(){
+    if(state.weight === 'tipis') return 0;
+    if(state.weight === 'tebal') return 1.8;
+    return 0.9;
+  }
+
+  function measureLine(text, size, letterSpacing){
+    ctx.font = `${state.fontWeight} ${size}px ${getFontFamily()}`;
+    const base = ctx.measureText(text).width;
+    return base + Math.max(0, text.length - 1) * letterSpacing;
+  }
+
+  function wrapText(text, size, maxWidth, letterSpacing){
+    const words = String(text).split(/\s+/);
+    const lines = [];
+    let line = '';
+    ctx.font = `${state.fontWeight} ${size}px ${getFontFamily()}`;
+    for(const word of words){
+      const test = line ? line + ' ' + word : word;
+      if(measureLine(test, size, letterSpacing) > maxWidth && line){
+        lines.push(line);
+        line = word;
+      }else{
+        line = test;
+      }
+    }
+    if(line) lines.push(line);
+    return lines;
+  }
+
+  function fitLayout(W,H){
+    const padX = 18;
+    const padY = 16;
+    const maxBoxW = Math.max(100, W - 20);
+    const minBoxW = Math.min(80, maxBoxW);
+    const boxW = clamp((state.boxPct/100) * W, minBoxW, maxBoxW);
+    let size = +state.size;
+    let lines = wrapText(state.text || '', size, boxW - padX*2, +state.letter);
+
+    while(lines.some(l => measureLine(l, size, +state.letter) > boxW - padX*2) && size > 18){
+      size -= 2;
+      lines = wrapText(state.text || '', size, boxW - padX*2, +state.letter);
+    }
+
+    // "Jarak": extra px added on top of the original tight 0.84 leading.
+    // gap=0 (default) reproduces size*0.84 exactly, byte-for-byte like before.
+    // Clamped so no slider position can collapse/invert line stacking.
+    const lineH = Math.max(size * 0.3, size * 0.84 + (+state.gap || 0));
+    const boxH = Math.max(64, lines.length * lineH + padY*2);
+    const x = clamp((state.xPct/100) * W, 0, W - boxW);
+    const y = clamp((state.yPct/100) * H, 0, H - boxH);
+    return {W,H,boxW,boxH,x,y,size,lines,lineH,padX,padY};
+  }
+
+  function updatePreview(){
+    const {w:W,h:H} = getStageSize();
+    const layout = fitLayout(W,H);
+
+    heroInner.style.background = state.bg;
+    stage.style.background = state.bg;
+    $('bgVal').textContent = state.bg.toUpperCase();
+    $('textColorVal').textContent = state.txt.toUpperCase();
+    $('charCount').textContent = `${state.text.length} huruf`;
+    $('sizeVal').textContent = state.size;
+    $('rotVal').textContent = `${state.rot}°`;
+    $('letterVal').textContent = state.letter;
+    $('weightVal').textContent = state.weight;
+    $('thickVal').textContent = state.fontWeight;
+    $('gapVal').textContent = state.gap;
+    $('bgHex').value = state.bg;
+    $('txtHex').value = state.txt;
+    $('txt').value = state.text;
+    $('size').value = state.size;
+    $('rot').value = state.rot;
+    $('letter').value = state.letter;
+    $('thickness').value = state.fontWeight;
+    $('gap').value = state.gap;
+    // Preview memakai pemenggalan baris yang SAMA persis dengan export canvas.
+    // Jadi kalau preview 2 baris, PNG juga 2 baris.
+    textDisplay.innerHTML = layout.lines.map(line => escapeHtml(line)).join('<br>');
+    textDisplay.style.color = state.txt;
+    textDisplay.style.fontFamily = getFontFamily();
+    textDisplay.style.fontStyle = 'normal';
+    textDisplay.style.fontWeight = String(state.fontWeight);
+    textDisplay.style.letterSpacing = `${state.letter}px`;
+    textDisplay.style.fontSize = `${layout.size}px`;
+    // Exact px line-height (not the old unitless 0.84) so "Jarak" can move the
+    // bottom line while the top line — anchored by the box's own top edge —
+    // stays put. !important needed to beat the pre-existing stylesheet rule.
+    textDisplay.style.setProperty('line-height', `${layout.lineH}px`, 'important');
+    textDisplay.style.textAlign = state.align;
+    // Stroke preview HARUS pakai warna & alpha yang sama persis dengan canvas export
+    // (ctx.strokeStyle = state.txt, opaque). Sebelumnya preview pakai rgba(0,0,0,.08)
+    // yang nyaris tak terlihat, jadi TIPIS/NORMAL/TEBAL kelihatan beda drastis di PNG.
+    textDisplay.style.webkitTextStroke = `${getTextStrokeWeight()}px ${state.txt}`;
+    textBox.style.width = `${layout.boxW}px`;
+    textBox.style.height = `${layout.boxH}px`;
+    textBox.style.left = `${layout.x}px`;
+    textBox.style.top = `${layout.y}px`;
+    textBox.style.transform = `rotate(${state.rot}deg)`;
+    textBox.style.setProperty('--z-rot', `${state.rot}deg`);
+    textBox.dataset.w = layout.boxW;
+    textBox.dataset.h = layout.boxH;
+    document.querySelectorAll('#alignSeg button').forEach(b => b.classList.toggle('active', b.dataset.align === state.align));
+    document.querySelectorAll('#weightSeg button').forEach(b => b.classList.toggle('active', b.dataset.weight === state.weight));
+    renderSwatches();
+    renderPresets();
+    saveState();
+    // Subtle response pulse on the preview stage — skipped while an active
+    // drag/resize/pinch gesture is in progress so it never fights 1:1 tracking.
+    if(!textBox.classList.contains('z-no-transition')){
+      stage.classList.remove('z-pulse');
+      void stage.offsetWidth;
+      stage.classList.add('z-pulse');
+    }
+  }
+
+  function renderSwatches(){
+    $('bgPalette').innerHTML = paletteBg.map(c => `<button class="swatch ${state.bg.toLowerCase()===c.toLowerCase()?'active':''}" style="background:${c}" data-color="${c}" aria-label="${c}"></button>`).join('');
+    $('txtPalette').innerHTML = paletteTxt.map(c => `<button class="swatch ${state.txt.toLowerCase()===c.toLowerCase()?'active':''}" style="background:${c}" data-color="${c}" aria-label="${c}"></button>`).join('');
+    $('bgPalette').querySelectorAll('.swatch').forEach(btn => btn.onclick = () => { pushUndo(); state.bg = btn.dataset.color; updatePreview(); toast('Latar diganti'); });
+    $('txtPalette').querySelectorAll('.swatch').forEach(btn => btn.onclick = () => { pushUndo(); state.txt = btn.dataset.color; updatePreview(); toast('Warna teks diganti'); });
+  }
+
+  function renderPresets(){
+    const custom=JSON.parse(localStorage.getItem('zibrat_custom_presets')||'{}');
+    const all={...presets,...custom};
+    const items=Object.keys(all).map(k=>[k, custom[k]?'punya lu':'gaya bawaan']);
+    $('presetPills').innerHTML=items.map(([k,d])=>`<button class="pill ${state.text===all[k].text&&state.size===all[k].size&&state.bg===all[k].bg?'active':''}" data-preset="${escapeHtml(k)}">${escapeHtml(k.toUpperCase())}</button>`).join('');
+    $('presetPills').querySelectorAll('.pill').forEach(btn=>btn.onclick=()=>{ const key=btn.dataset.preset; pushUndo(); Object.assign(state,all[key]); updatePreview(); toast('Gaya dipakai'); });
+  }
+
+  function renderHistory(){
+    let hist = [];
+    try{ hist = JSON.parse(localStorage.getItem('brat_history_v12') || '[]'); } catch {}
+    const box = $('history');
+    box.innerHTML = hist.length ? hist.map((x,i) => `
+      <div class="history-item">
+        <img src="${x.img}" alt="">
+        <b>${escapeHtml(x.text || '(kosong)')}</b>
+        <button class="fav ${x.fav?'on':''}" data-fav="${i}" aria-label="Favorit">${x.fav?'★':'☆'}</button>
+        <button data-open="${i}">Buka</button>
+      </div>
+    `).join('') : `<div class="help">Belum ada riwayat. Simpan PNG dulu.</div>`;
+    box.querySelectorAll('button[data-open]').forEach(b => b.onclick = () => {
+      const idx = +b.dataset.open;
+      const item = hist[idx];
+      if(!item) return;
+      pushUndo();
+      Object.assign(state, item.state || {});
+      updatePreview();
+      toast('Riwayat dibuka');
+    });
+    box.querySelectorAll('button[data-fav]').forEach(b => b.onclick = () => { const idx=+b.dataset.fav; hist[idx].fav=!hist[idx].fav; localStorage.setItem('brat_history_v12',JSON.stringify(hist)); renderHistory(); toast(hist[idx].fav?'Masuk favorit':'Dihapus dari favorit'); });
+  }
+
+  function saveHistoryThumb(){
+    let hist = [];
+    try{ hist = JSON.parse(localStorage.getItem('brat_history_v12') || '[]'); } catch {}
+    hist.unshift({
+      text: state.text.slice(0,80),
+      img: c.toDataURL('image/jpeg', 0.72),
+      state: JSON.parse(snapshot())
+    });
+    hist = hist.slice(0,10);
+    localStorage.setItem('brat_history_v12', JSON.stringify(hist));
+  }
+
+  async function savePNG(){
+    await ensureFontsReady();
+    drawExport();
+    saveHistoryThumb();
+    const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+    if(!blob) return toast('Gagal bikin PNG');
+
+    // SIMPAN harus benar-benar menyimpan file, bukan membuka share sheet.
+    // Share hanya dipanggil dari tombol BAGIIN.
+    const filename=`zibrat-${Date.now()}.png`;
+    try{
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download=filename;
+      a.setAttribute('download', filename);
+      a.rel='noopener';
+      a.style.display='none';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),3000);
+      renderHistory();
+      toast('✓ PNG disimpan ke download');
+      $('btnSaveFloat')?.classList.add('z-save-pop');
+      setTimeout(()=>$('btnSaveFloat')?.classList.remove('z-save-pop'),300);
+      return;
+    }catch(e){}
+
+    // Fallback kalau WebView/browser benar-benar memblokir download.
+    try{
+      const url=URL.createObjectURL(blob);
+      window.open(url,'_blank','noopener');
+      setTimeout(()=>URL.revokeObjectURL(url),10000);
+      renderHistory();
+      toast('PNG dibuka — tekan lama untuk simpan');
+    }catch{
+      toast('Browser ini ngeblok penyimpanan PNG');
+    }
+  }
+
+  async function copyImage(){
+    await ensureFontsReady();
+    drawExport();
+    try{
+      const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+      if(!blob) throw new Error('blob');
+
+      if(navigator.clipboard && window.ClipboardItem && navigator.clipboard.write){
+        await navigator.clipboard.write([
+          new ClipboardItem({'image/png': blob})
+        ]);
+        toast('✓ Gambar udah disalin ke clipboard');
+        return;
+      }
+
+      throw new Error('clipboard-unsupported');
+    }catch(e){
+      // SALIN GAMBAR tidak boleh berubah menjadi SIMPAN.
+      if(e && e.name === 'NotAllowedError'){
+        toast('Clipboard diblokir browser');
+      }else{
+        toast('Salin gambar belum didukung di browser ini');
+      }
+    }
+  }
+
+  async function shareImage(){
+    await ensureFontsReady();
+    drawExport();
+    const blob = await new Promise(r => c.toBlob(r,'image/png'));
+    if(!blob) return toast('Gagal bikin gambar');
+    try{
+      const file = new File([blob], 'zibrat.png', {type:'image/png'});
+      if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
+        await navigator.share({files:[file], title:'ZiBrat'});
+        toast('Udah dibagikan');
+      }else{ throw new Error('share'); }
+    }catch(e){ if(e && e.name==='AbortError') return; savePNG(); toast('Menu bagikan nggak tersedia — PNG disimpan'); }
+  }
+
+  // Menggambar satu baris huruf-per-huruf dengan jarak antar huruf yang sama
+  // persis dengan perhitungan measureLine() (dipakai untuk wrapping & alignment)
+  // dan dengan CSS letter-spacing yang dipakai preview. ctx.fillText satu baris
+  // penuh tidak menerapkan letter-spacing di canvas, makanya sebelumnya PNG
+  // selalu lebih rapat dari preview.
+  function drawLetterSpacedText(text, x, y, letterSpacing, strokeW){
+    let cx = x;
+    for(const ch of text){
+      if(strokeW > 0){
+        ctx.lineWidth = strokeW;
+        ctx.strokeText(ch, cx, y);
+      }
+      ctx.fillText(ch, cx, y);
+      cx += ctx.measureText(ch).width + letterSpacing;
+    }
+  }
+
+  function drawExport(){
+    // PENTING: layout export harus mengikuti ukuran PREVIEW.
+    // Kalau langsung pakai 1200x1200, teks bisa jadi tidak wrap seperti di preview.
+    const W = c.width, H = c.height;
+    const preview = getStageSize();
+    const previewW = Math.max(1, preview.w);
+    const previewH = Math.max(1, preview.h);
+
+    // Hitung layout persis berdasarkan ukuran preview, lalu scale ke PNG.
+    const layout = fitLayout(previewW, previewH);
+    const sx = W / previewW;
+    const sy = H / previewH;
+
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = state.bg;
+    ctx.fillRect(0,0,W,H);
+
+    ctx.save();
+    ctx.scale(sx, sy);
+
+    ctx.translate(layout.x + layout.boxW/2, layout.y + layout.boxH/2);
+    ctx.rotate((+state.rot) * Math.PI / 180);
+    ctx.translate(-(layout.x + layout.boxW/2), -(layout.y + layout.boxH/2));
+
+    // Match preview font weight exactly (state.fontWeight, "Ketebalan");
+    // export must never fall back to a different weight than the preview.
+    ctx.font = `${state.fontWeight} ${layout.size}px ${getFontFamily()}`;
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = state.txt;
+    ctx.strokeStyle = state.txt;
+    ctx.lineJoin = 'round';
+
+    const strokeW = getTextStrokeWeight();
+    const totalH = layout.lines.length * layout.lineH;
+    const startY = layout.y + layout.padY + Math.max(0, (layout.boxH - layout.padY*2 - totalH) / 2);
+
+    layout.lines.forEach((line, idx) => {
+      const lineWidth = measureLine(line, layout.size, +state.letter);
+      let x = layout.x + layout.padX;
+      if(state.align === 'center') x = layout.x + (layout.boxW - lineWidth) / 2;
+      if(state.align === 'right') x = layout.x + layout.boxW - layout.padX - lineWidth;
+
+      const y = startY + idx * layout.lineH;
+      drawLetterSpacedText(line, x, y, +state.letter, strokeW);
+    });
+
+    ctx.restore();
+
+  }
+
+  function nudgeIcon(action, cls){
+    const svg = document.querySelector(`.tab[data-action="${action}"] svg`);
+    if(!svg) return;
+    svg.classList.remove(cls);
+    void svg.offsetWidth;
+    svg.classList.add(cls);
+    setTimeout(() => svg.classList.remove(cls), 200);
+  }
+  function undo(){
+    if(!undoStack.length) return toast('Tidak ada yang bisa diurungkan');
+    redoStack.push(snapshot());
+    Object.assign(state, JSON.parse(undoStack.pop()));
+    updatePreview();
+    nudgeIcon('undo', 'z-undo-nudge');
+    toast('Diurungkan');
+  }
+  function redo(){
+    if(!redoStack.length) return toast('Tidak ada yang bisa diulangi');
+    undoStack.push(snapshot());
+    Object.assign(state, JSON.parse(redoStack.pop()));
+    updatePreview();
+    nudgeIcon('redo', 'z-redo-nudge');
+    toast('Diulangi');
+  }
+
+  function spinRandomizeIcons(){
+    document.querySelectorAll('#btnRandom svg').forEach(svg => {
+      svg.classList.remove('z-randomize-spin');
+      void svg.offsetWidth;
+      svg.classList.add('z-randomize-spin');
+    });
+  }
+
+  function randomize(){
+    spinRandomizeIcons();
+    pushUndo();
+    const words = [
+      "anjir cakep",
+      "yaelah",
+      "bodo amat",
+      "gak ngaruh jir",
+      "sok asik lu",
+      "bacot dikit",
+      "apaan sih",
+      "males jir",
+      "gas lah",
+      "gak usah ribet",
+      "anjay",
+      "udah diem",
+      "lu kira gua peduli?",
+      "wkwk tolol",
+      "santuy goblok",
+      "mampus dah",
+      "skip aja lah",
+      "kocak banget",
+      "gak jelas lu",
+      "yaudah terserah"
+    ];
+    const key = Object.keys(presets)[Math.floor(Math.random()*Object.keys(presets).length)];
+    Object.assign(state, presets[key]);
+    state.text = words[Math.floor(Math.random()*words.length)];
+    state.rot = Math.floor(Math.random()*13)-6;
+    state.letter = -3 + Math.floor(Math.random()*8);
+    state.align = ['left','center','right'][Math.floor(Math.random()*3)];
+    state.weight = ['tipis','normal','tebal'][Math.floor(Math.random()*3)];
+    state.bg = paletteBg[Math.floor(Math.random()*paletteBg.length)];
+    state.txt = paletteTxt[Math.floor(Math.random()*paletteTxt.length)];
+    state.boxPct = 60 + Math.floor(Math.random()*28);
+    state.xPct = 4 + Math.floor(Math.random()*18);
+    state.yPct = 10 + Math.floor(Math.random()*18);
+    updatePreview();
+    toast('acak lagi ✦');
+  }
+
+  function resetAll(){
+    pushUndo();
+    Object.assign(state, defaults);
+    updatePreview();
+    toast('Diatur ulang');
+  }
+
+  function openSheet(title, html){
+    $('sheetTitle').textContent = title;
+    $('sheetBody').innerHTML = html;
+    $('sheet').classList.add('open');
+  }
+  function closeSheet(){
+    $('sheet').classList.remove('open');
+  }
+
+  function openTextSheet(){
+    openSheet('TEKS', `
+      <div class="control">
+        <div class="label"><span>rotasi</span><span class="value" id="sheetRotVal">${state.rot}°</span></div>
+        <input id="sheetRot" class="slider" type="range" min="-12" max="12" value="${state.rot}">
+      </div>
+      <div class="control">
+        <div class="label"><span>ukuran</span><span class="value" id="sheetSizeVal">${state.size}</span></div>
+        <input id="sheetSize" class="slider" type="range" min="34" max="180" value="${state.size}">
+      </div>
+      <div class="control">
+        <div class="label"><span>jarak huruf</span><span class="value" id="sheetLetterVal">${state.letter}</span></div>
+        <input id="sheetLetter" class="slider" type="range" min="-5" max="12" value="${state.letter}">
+      </div>
+      <div class="control">
+        <div class="label"><span>tebal teks</span><span class="value">${state.weight}</span></div>
+        <div class="seg" id="sheetWeight">
+          <button data-weight="tipis" class="${state.weight==='tipis'?'active':''}">TIPIS</button>
+          <button data-weight="normal" class="${state.weight==='normal'?'active':''}">NORMAL</button>
+          <button data-weight="tebal" class="${state.weight==='tebal'?'active':''}">TEBAL</button>
+        </div>
+      </div>
+      <div class="control">
+        <div class="label"><span>rata teks</span><span class="value">pilih</span></div>
+        <div class="seg" id="sheetAlign">
+          <button data-align="left" class="${state.align==='left'?'active':''}">KIRI</button>
+          <button data-align="center" class="${state.align==='center'?'active':''}">TENGAH</button>
+          <button data-align="right" class="${state.align==='right'?'active':''}">KANAN</button>
+        </div>
+      </div>
+      <div class="control">
+        <div class="label"><span>warna teks</span><span class="value" id="sheetTxtVal">${state.txt.toUpperCase()}</span></div>
+        <div class="palette" id="sheetTxtPalette"></div>
+      </div>
+      <div class="row2">
+        <div class="control">
+          <div class="label"><span>latar sendiri</span><span class="value">KODE</span></div>
+          <input id="sheetBgHex" class="textarea" style="min-height:0;height:46px;font-size:13px;padding:10px 12px" maxlength="7" value="${state.bg}">
+        </div>
+        <div class="control">
+          <div class="label"><span>teks sendiri</span><span class="value">KODE</span></div>
+          <input id="sheetTxtHex" class="textarea" style="min-height:0;height:46px;font-size:13px;padding:10px 12px" maxlength="7" value="${state.txt}">
+        </div>
+      </div>
+      <div class="action-row" style="margin-top:9px">
+        <button class="action primary" id="sheetApplyColors">PAKAI WARNA</button>
+        <button class="action secondary" id="sheetResetColors">BALIK DEFAULT</button>
+      </div>
+    `);
+    if($('sheetBgPalette')) $('sheetBgPalette').innerHTML = paletteBg.map(c => `<button class="swatch ${state.bg.toLowerCase()===c.toLowerCase()?'active':''}" style="background:${c}" data-color="${c}" aria-label="${c}"></button>`).join('');
+    $('sheetTxtPalette').innerHTML = paletteTxt.map(c => `<button class="swatch ${state.txt.toLowerCase()===c.toLowerCase()?'active':''}" style="background:${c}" data-color="${c}" aria-label="${c}"></button>`).join('');
+    if($('sheetBgPalette')) $('sheetBgPalette').querySelectorAll('.swatch').forEach(btn => btn.onclick = () => { pushUndo(); state.bg = btn.dataset.color; updatePreview(); openColorSheet(); });
+    $('sheetTxtPalette').querySelectorAll('.swatch').forEach(btn => btn.onclick = () => { pushUndo(); state.txt = btn.dataset.color; updatePreview(); openColorSheet(); });
+    $('sheetApplyColors').onclick = () => {
+      const bgv = $('sheetBgHex').value.trim();
+      const txv = $('sheetTxtHex').value.trim();
+      if(!hexOk(bgv) || !hexOk(txv)) return toast('Pakai format #RRGGBB');
+      pushUndo(); state.bg = bgv.toUpperCase(); state.txt = txv.toUpperCase(); updatePreview(); toast('Warna dipakai');
+    };
+    $('sheetResetColors').onclick = () => { pushUndo(); state.bg = defaults.bg; state.txt = defaults.txt; updatePreview(); openColorSheet(); };
+  }
+
+  function openMoreSheet(){
+    const custom=JSON.parse(localStorage.getItem('zibrat_custom_presets')||'{}');
+    const all={...presets,...custom};
+    openSheet('LAINNYA', `
+      <div class="control"><div class="label"><span>gaya</span><span class="value">pilih</span></div><div class="grid2">
+        ${Object.keys(all).map(k=>`<button class="opt" data-preset="${escapeHtml(k)}"><b>${escapeHtml(k.toUpperCase())}</b><small>${custom[k]?'gaya buatan lu':'gaya bawaan'}</small></button>`).join('')}
+      </div></div>
+      <div class="row2"><button class="action secondary" id="undoBtn">MUNDUR</button><button class="action secondary" id="redoBtn">MAJU LAGI</button></div>
+      <div class="action-row"><button class="action primary" id="randBtn">BUAT ACAK ✦</button><button class="action secondary" id="resetBtn">BALIKIN</button></div>
+      <div class="action-row"><button class="action secondary" id="savePresetBtn">SIMPAN PRESET</button><button class="action secondary" id="themeBtn">${document.body.classList.contains('dark')?'TEMA TERANG':'TEMA GELAP'}</button></div>
+      <div class="action-row"><button class="action secondary" id="shareBtn2">BAGIIN</button><button class="action secondary" id="clearHistoryBtn">HAPUS RIWAYAT</button></div>
+      <div class="help" style="margin-top:10px">Geser kotak di preview. Dua jari buat zoom + putar.</div>
+    `);
+    $('sheetBody').querySelectorAll('[data-preset]').forEach(btn=>btn.onclick=()=>{pushUndo();Object.assign(state,all[btn.dataset.preset]);updatePreview();toast('Gaya dipakai');closeSheet();});
+    $('undoBtn').onclick=undo; $('redoBtn').onclick=redo;
+    $('randBtn').onclick=()=>{randomize('all');openMoreSheet();};
+    $('resetBtn').onclick=()=>{resetAll();openMoreSheet();};
+    $('savePresetBtn').onclick=()=>{const name=prompt('Nama gaya lu?');if(!name)return;const key=name.trim().slice(0,20);if(!key)return;const custom2=JSON.parse(localStorage.getItem('zibrat_custom_presets')||'{}');custom2[key]=JSON.parse(snapshot());localStorage.setItem('zibrat_custom_presets',JSON.stringify(custom2));renderPresets();toast('Gaya disimpan');openMoreSheet();};
+    $('themeBtn').onclick=()=>{document.body.classList.toggle('dark');localStorage.setItem('zibrat_theme',document.body.classList.contains('dark')?'dark':'light');openMoreSheet();};
+    $('shareBtn2').onclick=shareImage;
+    $('clearHistoryBtn').onclick=()=>{localStorage.removeItem('brat_history_v12');renderHistory();toast('Riwayat dihapus');};
+  }
+
+  function openUtilitySheet(){
+    openSheet('LAINNYA', `
+      <div class="control">
+        <div class="label"><span>tema</span><span class="value">${document.body.classList.contains('dark')?'gelap':'terang'}</span></div>
+        <button class="action secondary" id="sheetTheme">${document.body.classList.contains('dark')?'PAKAI TEMA TERANG':'PAKAI TEMA GELAP'}</button>
+      </div>
+      <div class="action-row">
+        <button class="action secondary" id="sheetReset">BALIKIN SEMUA</button>
+        <button class="action secondary" id="sheetClearHistory">HAPUS RIWAYAT</button>
+      </div>
+      <div class="help" style="margin-top:10px">Fungsi yang jarang dipakai disimpan di sini biar dock utama tetap bersih.</div>
+    `);
+    $('sheetTheme').onclick=()=>{ document.body.classList.toggle('dark'); localStorage.setItem('zibrat_theme',document.body.classList.contains('dark')?'dark':'light'); openUtilitySheet(); };
+    $('sheetReset').onclick=()=>{ resetAll(); openUtilitySheet(); };
+    $('sheetClearHistory').onclick=()=>{ localStorage.removeItem('brat_history_v12'); renderHistory(); toast('Riwayat dihapus'); };
+  }
+
+  window.__zibratOpenUtility = openUtilitySheet;
+
+  // Main controls
+  // FIX UNDO: satu kali perubahan (satu drag slider selesai / satu kali blur textarea)
+  // = satu undo state. 'input' fire puluhan kali saat drag/ketik, jadi 'input' cuma
+  // dipakai untuk live update preview; snapshot "sebelum" disimpan sekali di awal
+  // gesture lalu baru didorong ke undoStack sekali saat gesture selesai ('change'/'blur').
+  function bindLiveControl(el, apply, commitEvents){
+    let before = null;
+    el.addEventListener('input', e => {
+      if(before === null) before = snapshot();
+      apply(e);
+      updatePreview();
+    });
+    commitEvents.forEach(evt => el.addEventListener(evt, () => {
+      if(before === null) return;
+      undoStack.push(before);
+      if(undoStack.length > 30) undoStack.shift();
+      redoStack = [];
+      before = null;
+    }));
+  }
+  bindLiveControl($('txt'), e => { state.text = e.target.value; }, ['change','blur']);
+  bindLiveControl($('size'), e => { state.size = +e.target.value; }, ['change']);
+  bindLiveControl($('rot'), e => { state.rot = +e.target.value; }, ['change']);
+  bindLiveControl($('letter'), e => { state.letter = +e.target.value; }, ['change']);
+  bindLiveControl($('thickness'), e => { state.fontWeight = +e.target.value; }, ['change']);
+  bindLiveControl($('gap'), e => { state.gap = +e.target.value; }, ['change']);
+  $('alignSeg').querySelectorAll('button').forEach(btn => btn.onclick = () => { pushUndo(); state.align = btn.dataset.align; updatePreview(); });
+  $('weightSeg').querySelectorAll('button').forEach(btn => btn.onclick = () => { pushUndo(); state.weight = btn.dataset.weight; updatePreview(); });
+
+  $('btnCopy').onclick = copyImage;
+  $('btnShare').onclick = shareImage;
+  $('btnSaveFloat').onclick = savePNG;
+  $('btnResetTop').onclick = resetAll;
+  $('btnRandom').onclick = () => randomize('all');
+  if ($('btnReset')) $('btnReset').onclick = resetAll;
+  $('btnUndo').onclick = undo;
+  $('btnRedo').onclick = redo;
+  $('btnApplyHex').onclick = () => {
+    const bg = $('bgHex').value.trim();
+    const tx = $('txtHex').value.trim();
+    if(!hexOk(bg) || !hexOk(tx)) return toast('Pakai #RRGGBB');
+    pushUndo();
+    state.bg = bg.toUpperCase();
+    state.txt = tx.toUpperCase();
+    updatePreview();
+    toast('Warna dipakai');
+  };
+  $('btnResetColors').onclick = () => {
+    pushUndo();
+    state.bg = defaults.bg;
+    state.txt = defaults.txt;
+    updatePreview();
+    toast('Warna dikembalikan');
+  };
+
+  $('sheetClose').onclick = closeSheet;
+  $('sheet').addEventListener('click', e => { if(e.target === $('sheet')) closeSheet(); });
+
+  document.querySelectorAll('.dock .tab').forEach(btn => btn.onclick = () => {
+    const action = btn.dataset.action;
+    if(action === 'undo') return $('btnUndo').click();
+    if(action === 'redo') return $('btnRedo').click();
+    if(action === 'utility') return openUtilitySheet();
+  });
+
+  // ===== Direct preview manipulation V15 =====
+  // Satu sistem pointer saja: satu jari = geser, handle = resize,
+  // dua jari = ukuran + rotasi. Tidak ada listener duplikat.
+  let gesture = null;
+  const pointers = new Map();
+
+  function ppos(e){
+    const r = stage.getBoundingClientRect();
+    return {x:e.clientX-r.left,y:e.clientY-r.top,w:r.width,h:r.height};
+  }
+  function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+  function angle(a,b){ return Math.atan2(b.y-a.y,a.x-b.x)*180/Math.PI; }
+
+  textBox.addEventListener('pointerdown', e=>{
+    // FIX UNDO: hanya push satu snapshot kalau ini benar-benar awal gesture baru.
+    // Kalau jari kedua nempel di tengah gesture (misal drag → pinch), gesture
+    // sudah tidak null, jadi jangan push undo lagi (biar tetap 1 gesture = 1 state).
+    const isNewGesture = !gesture;
+    pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    try{textBox.setPointerCapture(e.pointerId)}catch{}
+    // No CSS transition while a gesture is live — the box must follow the
+    // finger 1:1, with zero eased lag on left/top/width/height/transform.
+    textBox.classList.remove('z-settle');
+    textBox.classList.add('z-no-transition');
+
+    if(pointers.size===2){
+      const [a,b]=[...pointers.values()];
+      if(isNewGesture) pushUndo();
+      gesture={type:'pinch',dist:Math.max(1,dist(a,b)),angle:angle(a,b),
+        size:state.size,rot:state.rot};
+      textBox.classList.add('active');
+      e.preventDefault();
+      return;
+    }
+
+    if(e.target.closest('.resize-handle')){
+      if(isNewGesture) pushUndo();
+      const pos=ppos(e);
+      gesture={type:'resize',startX:pos.x,startW:state.boxPct};
+      textBox.classList.add('active');
+      e.target.closest('.resize-handle').classList.add('z-press');
+      e.preventDefault();
+      return;
+    }
+
+    if(isNewGesture) pushUndo();
+    const pos=ppos(e);
+    gesture={type:'drag',startX:pos.x,startY:pos.y,startBoxX:state.xPct,startBoxY:state.yPct};
+    textBox.classList.add('active');
+    e.preventDefault();
+  },{passive:false});
+
+  textBox.addEventListener('pointermove', e=>{
+    if(!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+
+    if(pointers.size===2 && gesture?.type==='pinch'){
+      const [a,b]=[...pointers.values()];
+      const scale=dist(a,b)/gesture.dist;
+      state.size=clamp(Math.round(gesture.size*scale),34,180);
+      state.rot=clamp(Math.round(gesture.rot+(angle(a,b)-gesture.angle)),-12,12);
+      updatePreview();
+      e.preventDefault();
+      return;
+    }
+
+    if(!gesture || pointers.size!==1) return;
+    const pos=ppos(e);
+
+    if(gesture.type==='drag'){
+      const layout=fitLayout(pos.w,pos.h);
+      const dx=pos.x-gesture.startX, dy=pos.y-gesture.startY;
+      state.xPct=clamp((gesture.startBoxX/100*pos.w+dx)/pos.w*100,0,100-(layout.boxW/pos.w*100));
+      state.yPct=clamp((gesture.startBoxY/100*pos.h+dy)/pos.h*100,0,100-(layout.boxH/pos.h*100));
+      updatePreview();
+      e.preventDefault();
+    }else if(gesture.type==='resize'){
+      const dxPct=((pos.x-gesture.startX)/pos.w)*100;
+      state.boxPct=clamp(gesture.startW+dxPct,35,92);
+      state.xPct=clamp(state.xPct,0,100-state.boxPct);
+      updatePreview();
+      e.preventDefault();
+    }
+  },{passive:false});
+
+  function endPointer(e){
+    pointers.delete(e.pointerId);
+    textBox.querySelector('.resize-handle')?.classList.remove('z-press');
+    if(pointers.size===0){
+      gesture=null;
+      textBox.classList.remove('active');
+      // Gesture fully released — restore transitions and give a very short,
+      // almost-invisible settle so the release reads as a physical response.
+      textBox.classList.remove('z-no-transition');
+      textBox.classList.add('z-settle');
+    }else if(pointers.size===1 && gesture?.type==='pinch'){
+      gesture=null;
+      textBox.classList.remove('active');
+    }
+    try{textBox.releasePointerCapture(e.pointerId)}catch{}
+  }
+  textBox.addEventListener('pointerup',endPointer);
+  textBox.addEventListener('pointercancel',endPointer);
+  textBox.addEventListener('lostpointercapture',()=>{ if(pointers.size===0){gesture=null;textBox.classList.remove('active')} });
+
+  // Reveal .section cards once as they enter the viewport. Runs once per
+  // element, then unobserves — no continuous scroll animation, no polling.
+  function setupSectionReveal(){
+    const sections = document.querySelectorAll('.section');
+    const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduced || !('IntersectionObserver' in window)){
+      sections.forEach(s => s.classList.add('z-inview'));
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if(!entry.isIntersecting) return;
+        setTimeout(() => entry.target.classList.add('z-inview'), i * 40);
+        io.unobserve(entry.target);
+      });
+    }, {threshold:.15});
+    sections.forEach(s => io.observe(s));
+  }
+
+  function init(){
+    if(localStorage.getItem('zibrat_theme')==='dark') document.body.classList.add('dark');
+    renderSwatches();
+    renderPresets();
+    renderHistory();
+    updatePreview();
+    setupSectionReveal();
+    setTimeout(() => toast('Siap dipakai'), 250);
+    window.addEventListener('resize', () => updatePreview());
+
+    document.addEventListener('keydown', e => {
+      if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+      if(e.key.toLowerCase() === 'r' || e.code === 'Space'){ e.preventDefault(); randomize(); }
+      if(e.key.toLowerCase() === 's'){ e.preventDefault(); savePNG(); }
+      if(e.key.toLowerCase() === 'z' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); undo(); }
+      if(e.key.toLowerCase() === 'y' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); redo(); }
+    });
+
+  }
+
+  init();
+  // Once the real webfonts finish loading, re-run the preview layout so
+  // wrapping/measurements match the final font exactly (in case the very
+  // first paint happened against a fallback font while the webfont was
+  // still downloading).
+  ensureFontsReady().then(updatePreview);
+})();
+</script>
+
+
+<style id="zibrat-v15-fixes">
+/* V15 — preview interaction + mobile save */
+#textBox{touch-action:none;will-change:left,top,width,height,transform}
+#textBox .content{pointer-events:none}
+#textBox .drag-handle,#textBox .resize-handle{pointer-events:auto}
+#textBox.active{border-color:rgba(9,9,9,.72)}
+.resize-handle{touch-action:none}
+@media(max-width:520px){
+  .stage-hint{font-size:8px;padding:6px 9px}
+}
+</style>
+
+</body>
+<!-- v9: direct preview manipulation; export/render code intentionally unchanged -->
+<!-- v10: fixed updatePreview references; one direct manipulation system; export untouched -->
+</html>
