@@ -816,7 +816,7 @@ body:has(.sheet.open) .save-float{display:none !important}
   transform:translateX(-50%) !important;
   width:min(470px, calc(100vw - 20px)) !important;
   max-width:calc(100vw - 20px) !important;
-  height:50px !important;
+  height:56px !important;
   margin:0 !important;
   padding:4px !important;
   display:grid !important;
@@ -885,7 +885,7 @@ body:has(.sheet.open) .save-float{display:none !important}
 @media(max-width:380px){
   .dock{
     width:calc(100vw - 16px) !important;
-    height:46px !important;
+    height:52px !important;
     padding:3px !important;
     border-radius:16px !important;
     bottom:max(8px,calc(env(safe-area-inset-bottom) + 4px)) !important;
@@ -1615,91 +1615,6 @@ body:has(.sheet.open) .save-float{display:none !important}
   }
   function closeSheet(){
     $('sheet').classList.remove('open');
-  }
-
-  function openTextSheet(){
-    openSheet('TEKS', `
-      <div class="control">
-        <div class="label"><span>rotasi</span><span class="value" id="sheetRotVal">${state.rot}°</span></div>
-        <input id="sheetRot" class="slider" type="range" min="-12" max="12" value="${state.rot}">
-      </div>
-      <div class="control">
-        <div class="label"><span>ukuran</span><span class="value" id="sheetSizeVal">${state.size}</span></div>
-        <input id="sheetSize" class="slider" type="range" min="34" max="180" value="${state.size}">
-      </div>
-      <div class="control">
-        <div class="label"><span>jarak huruf</span><span class="value" id="sheetLetterVal">${state.letter}</span></div>
-        <input id="sheetLetter" class="slider" type="range" min="-5" max="12" value="${state.letter}">
-      </div>
-      <div class="control">
-        <div class="label"><span>tebal teks</span><span class="value">${state.weight}</span></div>
-        <div class="seg" id="sheetWeight">
-          <button data-weight="tipis" class="${state.weight==='tipis'?'active':''}">TIPIS</button>
-          <button data-weight="normal" class="${state.weight==='normal'?'active':''}">NORMAL</button>
-          <button data-weight="tebal" class="${state.weight==='tebal'?'active':''}">TEBAL</button>
-        </div>
-      </div>
-      <div class="control">
-        <div class="label"><span>rata teks</span><span class="value">pilih</span></div>
-        <div class="seg" id="sheetAlign">
-          <button data-align="left" class="${state.align==='left'?'active':''}">KIRI</button>
-          <button data-align="center" class="${state.align==='center'?'active':''}">TENGAH</button>
-          <button data-align="right" class="${state.align==='right'?'active':''}">KANAN</button>
-        </div>
-      </div>
-      <div class="control">
-        <div class="label"><span>warna teks</span><span class="value" id="sheetTxtVal">${state.txt.toUpperCase()}</span></div>
-        <div class="palette" id="sheetTxtPalette"></div>
-      </div>
-      <div class="row2">
-        <div class="control">
-          <div class="label"><span>latar sendiri</span><span class="value">KODE</span></div>
-          <input id="sheetBgHex" class="textarea" style="min-height:0;height:46px;font-size:13px;padding:10px 12px" maxlength="7" value="${state.bg}">
-        </div>
-        <div class="control">
-          <div class="label"><span>teks sendiri</span><span class="value">KODE</span></div>
-          <input id="sheetTxtHex" class="textarea" style="min-height:0;height:46px;font-size:13px;padding:10px 12px" maxlength="7" value="${state.txt}">
-        </div>
-      </div>
-      <div class="action-row" style="margin-top:9px">
-        <button class="action primary" id="sheetApplyColors">PAKAI WARNA</button>
-        <button class="action secondary" id="sheetResetColors">BALIK DEFAULT</button>
-      </div>
-    `);
-    if($('sheetBgPalette')) $('sheetBgPalette').innerHTML = paletteBg.map(c => `<button class="swatch ${state.bg.toLowerCase()===c.toLowerCase()?'active':''}" style="background:${c}" data-color="${c}" aria-label="${c}"></button>`).join('');
-    $('sheetTxtPalette').innerHTML = paletteTxt.map(c => `<button class="swatch ${state.txt.toLowerCase()===c.toLowerCase()?'active':''}" style="background:${c}" data-color="${c}" aria-label="${c}"></button>`).join('');
-    if($('sheetBgPalette')) $('sheetBgPalette').querySelectorAll('.swatch').forEach(btn => btn.onclick = () => { pushUndo(); state.bg = btn.dataset.color; updatePreview(); openColorSheet(); });
-    $('sheetTxtPalette').querySelectorAll('.swatch').forEach(btn => btn.onclick = () => { pushUndo(); state.txt = btn.dataset.color; updatePreview(); openColorSheet(); });
-    $('sheetApplyColors').onclick = () => {
-      const bgv = $('sheetBgHex').value.trim();
-      const txv = $('sheetTxtHex').value.trim();
-      if(!hexOk(bgv) || !hexOk(txv)) return toast('Pakai format #RRGGBB');
-      pushUndo(); state.bg = bgv.toUpperCase(); state.txt = txv.toUpperCase(); updatePreview(); toast('Warna dipakai');
-    };
-    $('sheetResetColors').onclick = () => { pushUndo(); state.bg = defaults.bg; state.txt = defaults.txt; updatePreview(); openColorSheet(); };
-  }
-
-  function openMoreSheet(){
-    const custom=JSON.parse(localStorage.getItem('zibrat_custom_presets')||'{}');
-    const all={...presets,...custom};
-    openSheet('LAINNYA', `
-      <div class="control"><div class="label"><span>gaya</span><span class="value">pilih</span></div><div class="grid2">
-        ${Object.keys(all).map(k=>`<button class="opt" data-preset="${escapeHtml(k)}"><b>${escapeHtml(k.toUpperCase())}</b><small>${custom[k]?'gaya buatan lu':'gaya bawaan'}</small></button>`).join('')}
-      </div></div>
-      <div class="row2"><button class="action secondary" id="undoBtn">MUNDUR</button><button class="action secondary" id="redoBtn">MAJU LAGI</button></div>
-      <div class="action-row"><button class="action primary" id="randBtn">BUAT ACAK ✦</button><button class="action secondary" id="resetBtn">BALIKIN</button></div>
-      <div class="action-row"><button class="action secondary" id="savePresetBtn">SIMPAN PRESET</button><button class="action secondary" id="themeBtn">${document.body.classList.contains('dark')?'TEMA TERANG':'TEMA GELAP'}</button></div>
-      <div class="action-row"><button class="action secondary" id="shareBtn2">BAGIIN</button><button class="action secondary" id="clearHistoryBtn">HAPUS RIWAYAT</button></div>
-      <div class="help" style="margin-top:10px">Geser kotak di preview. Dua jari buat zoom + putar.</div>
-    `);
-    $('sheetBody').querySelectorAll('[data-preset]').forEach(btn=>btn.onclick=()=>{pushUndo();Object.assign(state,all[btn.dataset.preset]);updatePreview();toast('Gaya dipakai');closeSheet();});
-    $('undoBtn').onclick=undo; $('redoBtn').onclick=redo;
-    $('randBtn').onclick=()=>{randomize('all');openMoreSheet();};
-    $('resetBtn').onclick=()=>{resetAll();openMoreSheet();};
-    $('savePresetBtn').onclick=()=>{const name=prompt('Nama gaya lu?');if(!name)return;const key=name.trim().slice(0,20);if(!key)return;const custom2=JSON.parse(localStorage.getItem('zibrat_custom_presets')||'{}');custom2[key]=JSON.parse(snapshot());localStorage.setItem('zibrat_custom_presets',JSON.stringify(custom2));renderPresets();toast('Gaya disimpan');openMoreSheet();};
-    $('themeBtn').onclick=()=>{document.body.classList.toggle('dark');localStorage.setItem('zibrat_theme',document.body.classList.contains('dark')?'dark':'light');openMoreSheet();};
-    $('shareBtn2').onclick=shareImage;
-    $('clearHistoryBtn').onclick=()=>{localStorage.removeItem('brat_history_v12');renderHistory();toast('Riwayat dihapus');};
   }
 
   function openUtilitySheet(){
