@@ -247,6 +247,13 @@ body.dark{--paper:#111;--ink:#f5f5f0;--soft:#222}.dark .top{background:linear-gr
 }
 .swatch.active{outline:3px solid var(--green);outline-offset:2px}
 .swatch:active{transform:scale(.97)}
+.swatch.more-toggle{
+  display:grid;place-items:center;
+  background:#fff;
+}
+.swatch.more-toggle svg{width:17px;height:17px;stroke:var(--ink);stroke-width:2.3;fill:none;stroke-linecap:round;stroke-linejoin:round;transition:transform .16s ease}
+.swatch.more-toggle.is-open svg{transform:rotate(180deg)}
+.dark .swatch.more-toggle{background:#222}
 .history{display:grid;gap:8px}
 .history-item{
   display:flex;align-items:center;gap:10px;
@@ -323,6 +330,95 @@ body.dark{--paper:#111;--ink:#f5f5f0;--soft:#222}.dark .top{background:linear-gr
 .opt:active{transform:translateY(2px)}
 .opt small{display:block;font-size:9px;line-height:1.1;margin-top:7px}
 .help{font-size:10px;opacity:.85;line-height:1.35}
+/* ratio input row (custom "bebas" aspect ratio) */
+.ratio-inputs{display:flex;align-items:center;gap:8px}
+.ratio-inputs .control{flex:1;margin-top:0}
+.ratio-sep{font-size:16px;font-weight:900;opacity:.55;margin-top:14px}
+
+/* Compact ratio control: small pill button that floats on the preview,
+   opens a popover with the same presets/custom inputs as before — the
+   ratio setting no longer takes up a full section between preview and text. */
+.ratio-trigger{
+  position:absolute;top:10px;right:10px;z-index:7;
+  display:flex;align-items:center;gap:5px;
+  border:3px solid var(--ink);border-radius:999px;
+  background:rgba(255,255,255,.94);
+  padding:7px 11px 7px 13px;
+  font-size:12px;font-weight:800;letter-spacing:-.1px;color:var(--ink);
+  box-shadow:2px 2px 0 var(--ink);
+  transition:transform .14s ease, box-shadow .14s ease;
+}
+.ratio-trigger:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+.ratio-trigger .rt-arrow{font-size:9px;opacity:.6}
+.dark .ratio-trigger{background:rgba(34,34,34,.94);color:#fff}
+
+.ratio-overlay{
+  position:fixed;inset:0;z-index:150;
+  display:none;align-items:flex-start;justify-content:center;
+  padding:min(20vh,140px) 16px 16px;
+  background:rgba(9,9,9,.45);
+  overflow:auto;
+}
+.ratio-overlay.open{display:flex;animation:fadeIn .16s ease both}
+.ratio-popover{
+  width:100%;max-width:420px;
+  background:#fff;border:3px solid var(--ink);border-radius:24px;
+  box-shadow:5px 5px 0 var(--ink);padding:14px;
+  animation:sheetUp .2s ease both;
+}
+.dark .ratio-popover{background:#181818}
+.ratio-popover-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.ratio-popover-head h3{margin:0;font-size:18px;letter-spacing:-.75px}
+
+/* Text card: bigger, comfier textarea right under the preview */
+.textarea-lg{min-height:120px;font-size:19px;line-height:1.12}
+/* watermark position picker — 3x3 grid, each button shows a dot where the
+   watermark will land, like a tiny live preview of the canvas */
+.wm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:2px}
+.wm-grid button{
+  position:relative;height:50px;border:3px solid var(--ink);border-radius:14px;
+  background:linear-gradient(180deg,#fff 0%,#edece4 100%);
+  box-shadow:2px 2px 0 var(--ink);
+  transition:transform .14s ease, background .14s ease, box-shadow .14s ease;
+}
+.wm-grid button::after{
+  content:"";position:absolute;width:8px;height:8px;border-radius:3px;background:var(--ink);opacity:.55;
+}
+.wm-grid button.active{background:linear-gradient(180deg,var(--green2),var(--green));box-shadow:1px 1px 0 var(--ink);transform:translate(1px,1px)}
+.wm-grid button.active::after{background:#111;opacity:1}
+.wm-grid button:active{transform:translate(1px,1px)}
+.dark .wm-grid button{background:#222}
+.wm-grid button[data-pos="tl"]::after{top:8px;left:8px}
+.wm-grid button[data-pos="tc"]::after{top:8px;left:50%;transform:translateX(-50%)}
+.wm-grid button[data-pos="tr"]::after{top:8px;right:8px}
+.wm-grid button[data-pos="ml"]::after{top:50%;left:8px;transform:translateY(-50%)}
+.wm-grid button[data-pos="mm"]::after{top:50%;left:50%;transform:translate(-50%,-50%)}
+.wm-grid button[data-pos="mr"]::after{top:50%;right:8px;transform:translateY(-50%)}
+.wm-grid button[data-pos="bl"]::after{bottom:8px;left:8px}
+.wm-grid button[data-pos="bc"]::after{bottom:8px;left:50%;transform:translateX(-50%)}
+.wm-grid button[data-pos="br"]::after{bottom:8px;right:8px}
+/* watermark tag shown live in the preview — positioned/styled to match
+   exactly what drawWatermark() paints onto the export canvas */
+.watermark-tag{
+  position:absolute;
+  z-index:6;
+  max-width:70%;
+  padding:7px 11px;
+  border-radius:999px;
+  background:rgba(9,9,9,.85);
+  color:#fff;
+  font-family:"Nunito Sans",Arial,sans-serif;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:0;
+  line-height:1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  box-shadow:2px 2px 0 var(--green);
+  pointer-events:none;
+  display:none;
+}
 .toast{
   position:fixed;left:50%;bottom:102px;transform:translate(-50%,12px);
   background:#111;color:#fff;border:2px solid var(--green);
@@ -1240,6 +1336,10 @@ body.dark .welcome-screen{background:var(--paper)}
           <div class="resize-handle" title="Tarik buat gede-kecilin">↘</div>
         </div>
         <div class="stage-hint">geser brat untuk pindah • tarik sudut untuk ubah lebar</div>
+        <div class="watermark-tag" id="watermarkPreview" aria-hidden="true"></div>
+        <button type="button" class="ratio-trigger" id="ratioTrigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="ratioPopover" title="Ganti rasio">
+          <span id="ratioVal">1:1</span><span class="rt-arrow" aria-hidden="true">▾</span>
+        </button>
       </div>
       <div class="action-row">
         <button class="action secondary" id="btnCopy">
@@ -1269,17 +1369,25 @@ body.dark .welcome-screen{background:var(--paper)}
       <div class="badge" id="charCount">0 huruf</div>
     </div>
     <div class="card pad">
-      <div class="control">
+      <div class="control" style="margin-top:0">
         <div class="label"><span>teks kamu</span><span class="value">langsung tampil</span></div>
-        <textarea id="txt" class="textarea" spellcheck="false" placeholder="tulis apa aja...">i'm having a brat summer</textarea>
+        <textarea id="txt" class="textarea textarea-lg" spellcheck="false" placeholder="tulis apa aja...">i'm having a brat summer</textarea>
       </div>
+    </div>
+  </section>
 
-      <div class="row2">
-        <div class="control">
+  <section class="section">
+    <div class="head">
+      <h2>kontrol teks</h2>
+      <div class="badge">atur gaya</div>
+    </div>
+    <div class="card pad">
+      <div class="row2" style="margin-top:0">
+        <div class="control" style="margin-top:0">
           <div class="label"><span>ukuran</span><span class="value" id="sizeVal">106</span></div>
           <input id="size" class="slider" type="range" min="34" max="180" value="106">
         </div>
-        <div class="control">
+        <div class="control" style="margin-top:0">
           <div class="label"><span>rotasi</span><span class="value" id="rotVal">0°</span></div>
           <input id="rot" class="slider" type="range" min="-12" max="12" value="0">
         </div>
@@ -1354,20 +1462,44 @@ body.dark .welcome-screen{background:var(--paper)}
 
   <section class="section">
     <div class="head">
-      <h2>lain-lain</h2>
-      <div class="badge">alat</div>
+      <h2>gaya</h2>
+      <div class="badge">preset</div>
     </div>
     <div class="card pad">
       <div class="control">
-        <div class="label"><span>gaya</span><span class="value">pilih</span></div>
+        <div class="label"><span>gaya cepat</span><span class="value">pilih</span></div>
         <div class="pills" id="presetPills"></div>
       </div>
-      <div class="row2">
-        <button class="action secondary" id="btnUndo">MUNDUR</button>
-        <button class="action secondary" id="btnRedo">MAJU LAGI</button>
-      </div>
       <div class="help" style="margin-top:10px">
-        Kotak teks bisa lu geser dan lu gede-kecilin langsung di preview. Huruf BRAT tetap ramping, tapi tampilan aplikasinya dibuat tegas dan gampang dibaca.
+        Kotak teks bisa lu geser dan lu gede-kecilin langsung di preview. Undo/redo ada di menu bawah.
+      </div>
+
+      <div class="control" style="margin-top:10px">
+        <div class="label"><span>watermark</span><span class="value" id="wmStatusVal">mati</span></div>
+        <div class="seg" id="wmToggleSeg">
+          <button class="active" data-wm="off">MATI</button>
+          <button data-wm="on">NYALA</button>
+        </div>
+      </div>
+      <div id="wmOptions" style="display:none">
+        <div class="control">
+          <div class="label"><span>teks watermark</span><span class="value">maks 30</span></div>
+          <input id="wmText" class="textarea" style="min-height:0;height:46px;font-size:14px;padding:10px 12px" maxlength="30" placeholder="cth. @akunkamu" value="ZiBrat">
+        </div>
+        <div class="control">
+          <div class="label"><span>posisi watermark</span><span class="value">pilih</span></div>
+          <div class="wm-grid" id="wmGrid">
+            <button data-pos="tl" aria-label="Pojok kiri atas" title="Kiri atas"></button>
+            <button data-pos="tc" aria-label="Tengah atas" title="Tengah atas"></button>
+            <button data-pos="tr" aria-label="Pojok kanan atas" title="Kanan atas"></button>
+            <button data-pos="ml" aria-label="Kiri tengah" title="Kiri tengah"></button>
+            <button data-pos="mm" aria-label="Tengah" title="Tengah"></button>
+            <button data-pos="mr" aria-label="Kanan tengah" title="Kanan tengah"></button>
+            <button data-pos="bl" aria-label="Pojok kiri bawah" title="Kiri bawah"></button>
+            <button data-pos="bc" aria-label="Tengah bawah" title="Tengah bawah"></button>
+            <button class="active" data-pos="br" aria-label="Pojok kanan bawah" title="Kanan bawah"></button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -1381,6 +1513,43 @@ body.dark .welcome-screen{background:var(--paper)}
       <div class="history" id="history"></div>
     </div>
   </section>
+</div>
+
+<div class="ratio-overlay" id="ratioOverlay" aria-hidden="true">
+  <div class="ratio-popover" id="ratioPopover" role="dialog" aria-modal="true" aria-label="Pilih rasio">
+    <div class="ratio-popover-head">
+      <h3>rasio</h3>
+      <button class="sheet-close" id="ratioPopoverClose" type="button">TUTUP</button>
+    </div>
+    <div class="control" style="margin-top:0">
+      <div class="label"><span>format cepat</span><span class="value">medsos</span></div>
+      <div class="pills" id="ratioPills">
+        <button class="pill active" data-rw="1" data-rh="1">1:1 FEED</button>
+        <button class="pill" data-rw="4" data-rh="5">4:5 POTRET</button>
+        <button class="pill" data-rw="3" data-rh="4">3:4 POTRET</button>
+        <button class="pill" data-rw="9" data-rh="16">9:16 STORY</button>
+        <button class="pill" data-rw="16" data-rh="9">16:9 LANSKAP</button>
+        <button class="pill" data-rw="2" data-rh="3">2:3 PIN</button>
+        <button class="pill" data-rw="5" data-rh="4">5:4</button>
+        <button class="pill" data-rw="3" data-rh="2">3:2</button>
+      </div>
+    </div>
+    <div class="ratio-inputs" style="margin-top:9px">
+      <div class="control">
+        <div class="label"><span>lebar</span><span class="value">bebas</span></div>
+        <input id="ratioW" class="textarea" style="min-height:0;height:46px;font-size:15px;padding:10px 12px;text-align:center" type="number" min="0.1" max="20" step="0.1" inputmode="decimal" value="1">
+      </div>
+      <div class="ratio-sep">:</div>
+      <div class="control">
+        <div class="label"><span>tinggi</span><span class="value">bebas</span></div>
+        <input id="ratioH" class="textarea" style="min-height:0;height:46px;font-size:15px;padding:10px 12px;text-align:center" type="number" min="0.1" max="20" step="0.1" inputmode="decimal" value="1">
+      </div>
+    </div>
+    <button class="action primary" id="btnApplyRatio" style="margin-top:9px;width:100%">PAKAI RASIO</button>
+    <div class="help" style="margin-top:10px">
+      Pilih format cepat, atau isi rasio sendiri buat medsos apapun (misal 1.91:1 buat iklan). Rasio default tetap 1:1. Hasil unduhan dijamin persis kayak yang di preview.
+    </div>
+  </div>
 </div>
 
 <button class="save-float" id="btnSaveFloat" aria-label="Simpan PNG" title="Simpan PNG">
@@ -1449,7 +1618,12 @@ body.dark .welcome-screen{background:var(--paper)}
     txt: '#050505',
     boxPct: 78,
     xPct: 8,
-    yPct: 18
+    yPct: 18,
+    ratioW: 1,   // aspect ratio, freely settable — default is always 1:1
+    ratioH: 1,
+    wmOn: false, // watermark off by default so it never surprises existing users
+    wmText: 'ZiBrat',
+    wmPos: 'br'  // tl,tc,tr,ml,mm,mr,bl,bc,br
   };
 
   const presets = {
@@ -1460,8 +1634,19 @@ body.dark .welcome-screen{background:var(--paper)}
     berantakan: {size:112, rot:4, letter:-2, align:'left', weight:'tebal', bg:'#8ACE00', txt:'#050505', boxPct:80, xPct:8, yPct:18, text:"too much?"}
   };
 
-  const paletteBg = ['#8ACE00','#b8ff17','#d9ff32','#111111','#ffffff','#e9ff8a','#c8ff00','#f4f4ee','#9bff4d','#d1ff6a'];
-  const paletteTxt = ['#050505','#ffffff','#222222','#5b5b5b','#8ACE00','#ff4fd8','#5b5bff','#ff5a36','#ffd400','#00b7ff'];
+  const paletteBgBase = ['#8ACE00','#b8ff17','#d9ff32','#111111','#ffffff','#e9ff8a','#c8ff00','#f4f4ee','#9bff4d'];
+  const paletteTxtBase = ['#050505','#ffffff','#222222','#5b5b5b','#8ACE00','#ff4fd8','#5b5bff','#ff5a36','#ffd400'];
+  // 40 warna premium tambahan (dipakai bareng buat latar & teks)
+  const premiumColors = [
+    '#D4AF37','#B76E79','#0F52BA','#722F37','#4B0082','#C1440E','#1C1C1C','#F7E7CE',
+    '#045D5D','#9B111E','#556B2F','#708090','#B87333','#2E8B57','#6A0DAD','#14213D',
+    '#E5C158','#800020','#50C878','#915F6D','#B8860B','#1B1F3B','#C08497','#A0522D',
+    '#8E44AD','#046307','#B0413E','#4169E1','#E0BFB8','#5D1A1D','#C9A227','#2C3E75',
+    '#9B59B6','#B5651D','#0C7B93','#FFBF00','#36454F','#E9967A','#001F3F','#C0392B'
+  ];
+  const paletteBg = [...paletteBgBase, ...premiumColors];
+  const paletteTxt = [...paletteTxtBase, ...premiumColors];
+  const paletteExpanded = {bgPalette:false, txtPalette:false};
 
   const state = loadState();
   let undoStack = [];
@@ -1483,14 +1668,18 @@ body.dark .welcome-screen{background:var(--paper)}
     localStorage.setItem('brat_state_v12', JSON.stringify({
       text: state.text, size: state.size, rot: state.rot, letter: state.letter, align: state.align,
       weight: state.weight, fontWeight: state.fontWeight, gap: state.gap, bg: state.bg, txt: state.txt,
-      boxPct: state.boxPct, xPct: state.xPct, yPct: state.yPct
+      boxPct: state.boxPct, xPct: state.xPct, yPct: state.yPct,
+      ratioW: state.ratioW, ratioH: state.ratioH,
+      wmOn: state.wmOn, wmText: state.wmText, wmPos: state.wmPos
     }));
   }
   function snapshot(){
     return JSON.stringify({
       text: state.text, size: state.size, rot: state.rot, letter: state.letter, align: state.align,
       weight: state.weight, fontWeight: state.fontWeight, gap: state.gap, bg: state.bg, txt: state.txt,
-      boxPct: state.boxPct, xPct: state.xPct, yPct: state.yPct
+      boxPct: state.boxPct, xPct: state.xPct, yPct: state.yPct,
+      ratioW: state.ratioW, ratioH: state.ratioH,
+      wmOn: state.wmOn, wmText: state.wmText, wmPos: state.wmPos
     });
   }
   function pushUndo(){
@@ -1539,6 +1728,85 @@ body.dark .welcome-screen{background:var(--paper)}
   function getStageSize(){
     const r = stage.getBoundingClientRect();
     return {w:r.width, h:r.height};
+  }
+
+  // ===== Rasio bebas (freely-chosen aspect ratio) =====
+  // Export canvas size is ALWAYS derived from the exact same ratioW/ratioH
+  // as the live preview stage, scaled by a single uniform factor — so the
+  // canvas never ends up a different shape than what's on screen, and the
+  // downloaded PNG matches the preview pixel-for-pixel.
+  function computeExportSize(rw, rh){
+    rw = Math.max(0.02, Math.abs(+rw) || 1);
+    rh = Math.max(0.02, Math.abs(+rh) || 1);
+    const SHORT = 1080, MAXLONG = 1920;
+    let w, h;
+    if(rw >= rh){ h = SHORT; w = SHORT * (rw/rh); }
+    else { w = SHORT; h = SHORT * (rh/rw); }
+    const long = Math.max(w,h);
+    if(long > MAXLONG){ const k = MAXLONG/long; w *= k; h *= k; }
+    return {w:Math.max(2,Math.round(w)), h:Math.max(2,Math.round(h))};
+  }
+  function applyStageRatio(){
+    stage.style.aspectRatio = `${state.ratioW} / ${state.ratioH}`;
+  }
+  function applyRatioToCanvas(){
+    const {w,h} = computeExportSize(state.ratioW, state.ratioH);
+    if(c.width !== w) c.width = w;
+    if(c.height !== h) c.height = h;
+  }
+  function fmtRatioNum(n){ return (Math.round((+n)*100)/100).toString(); }
+  function ratioLabel(rw,rh){ return `${fmtRatioNum(rw)}:${fmtRatioNum(rh)}`; }
+  function setRatio(rw, rh){
+    rw = clamp(parseFloat(rw)||1, 0.1, 20);
+    rh = clamp(parseFloat(rh)||1, 0.1, 20);
+    pushUndo();
+    state.ratioW = rw;
+    state.ratioH = rh;
+    updatePreview();
+    toast('Rasio dipakai: ' + ratioLabel(rw,rh));
+  }
+  function renderRatioUI(){
+    if(document.activeElement !== $('ratioW')) $('ratioW').value = state.ratioW;
+    if(document.activeElement !== $('ratioH')) $('ratioH').value = state.ratioH;
+    updateBadge($('ratioVal'), ratioLabel(state.ratioW, state.ratioH));
+    $('ratioPills').querySelectorAll('button').forEach(b=>{
+      b.classList.toggle('active', +b.dataset.rw===+state.ratioW && +b.dataset.rh===+state.ratioH);
+    });
+  }
+
+  // ===== Watermark =====
+  // Position a preview-space element (div OR the canvas paint origin) using
+  // the same 9-point grid and the same edge padding, so the live preview and
+  // the exported PNG land on the exact same spot.
+  const WM_PAD = 14;
+  function positionWatermarkEl(el, pos){
+    el.style.left = el.style.right = el.style.top = el.style.bottom = '';
+    el.style.transform = '';
+    const row = pos[0], col = pos[1];
+    let tx = '0', ty = '0';
+    if(row==='t'){ el.style.top = WM_PAD+'px'; }
+    else if(row==='m'){ el.style.top = '50%'; ty = '-50%'; }
+    else { el.style.bottom = WM_PAD+'px'; }
+    if(col==='l'){ el.style.left = WM_PAD+'px'; el.style.textAlign='left'; }
+    else if(col==='c'){ el.style.left = '50%'; tx = '-50%'; el.style.textAlign='center'; }
+    else { el.style.right = WM_PAD+'px'; el.style.textAlign='right'; }
+    if(tx!=='0' || ty!=='0') el.style.transform = `translate(${tx}, ${ty})`;
+  }
+  function renderWatermarkOverlay(){
+    const el = $('watermarkPreview');
+    if(!el) return;
+    const text = (state.wmText||'').trim();
+    if(!state.wmOn || !text){ el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    el.textContent = text;
+    positionWatermarkEl(el, state.wmPos||'br');
+  }
+  function renderWatermarkUI(){
+    $('wmToggleSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('active', (b.dataset.wm==='on')===!!state.wmOn));
+    updateBadge($('wmStatusVal'), state.wmOn ? 'nyala' : 'mati');
+    $('wmOptions').style.display = state.wmOn ? '' : 'none';
+    if(document.activeElement !== $('wmText')) $('wmText').value = state.wmText;
+    $('wmGrid').querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.pos===state.wmPos));
   }
 
   function getFontFamily(){
@@ -1628,6 +1896,10 @@ body.dark .welcome-screen{background:var(--paper)}
   }
 
   function updatePreview(){
+    // Keep the stage's on-screen shape and the export canvas's pixel shape
+    // locked to the exact same ratio before anything else measures them.
+    applyStageRatio();
+    applyRatioToCanvas();
     const {w:W,h:H} = getStageSize();
     const layout = fitLayout(W,H);
 
@@ -1680,6 +1952,9 @@ body.dark .welcome-screen{background:var(--paper)}
     document.querySelectorAll('#weightSeg button').forEach(b => b.classList.toggle('active', b.dataset.weight === state.weight));
     renderSwatches();
     renderPresets();
+    renderRatioUI();
+    renderWatermarkUI();
+    renderWatermarkOverlay();
     saveState();
     // Subtle response pulse on the preview stage — skipped while an active
     // drag/resize/pinch gesture is in progress so it never fights 1:1 tracking.
@@ -1690,19 +1965,29 @@ body.dark .welcome-screen{background:var(--paper)}
     }
   }
 
+  const moreIconSVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>`;
+
+  function renderPalette(id, colors, activeColor, onPick, label){
+    const el = $(id);
+    const expanded = paletteExpanded[id];
+    const visible = expanded ? colors : colors.slice(0, 9);
+    const swatches = visible.map(c => `<button class="swatch ${activeColor.toLowerCase()===c.toLowerCase()?'active':''}" style="background:${c}" data-color="${c}" aria-label="${c}" title="${c}"></button>`).join('');
+    const toggleLabel = expanded ? 'Sembunyikan warna lainnya' : 'Lihat warna lainnya';
+    const toggle = `<button class="swatch more-toggle ${expanded?'is-open':''}" id="${id}More" aria-label="${toggleLabel}" title="${toggleLabel}">${moreIconSVG}</button>`;
+    el.innerHTML = swatches + toggle;
+    el.querySelectorAll('.swatch:not(.more-toggle)').forEach(btn => btn.onclick = () => { pushUndo(); onPick(btn.dataset.color); updatePreview(); toast(label + ' diganti'); });
+    $(id + 'More').onclick = () => { paletteExpanded[id] = !paletteExpanded[id]; renderSwatches(); };
+  }
+
   function renderSwatches(){
-    $('bgPalette').innerHTML = paletteBg.map(c => `<button class="swatch ${state.bg.toLowerCase()===c.toLowerCase()?'active':''}" style="background:${c}" data-color="${c}" aria-label="${c}"></button>`).join('');
-    $('txtPalette').innerHTML = paletteTxt.map(c => `<button class="swatch ${state.txt.toLowerCase()===c.toLowerCase()?'active':''}" style="background:${c}" data-color="${c}" aria-label="${c}"></button>`).join('');
-    $('bgPalette').querySelectorAll('.swatch').forEach(btn => btn.onclick = () => { pushUndo(); state.bg = btn.dataset.color; updatePreview(); toast('Latar diganti'); });
-    $('txtPalette').querySelectorAll('.swatch').forEach(btn => btn.onclick = () => { pushUndo(); state.txt = btn.dataset.color; updatePreview(); toast('Warna teks diganti'); });
+    renderPalette('bgPalette', paletteBg, state.bg, c => state.bg = c, 'Latar');
+    renderPalette('txtPalette', paletteTxt, state.txt, c => state.txt = c, 'Warna teks');
   }
 
   function renderPresets(){
-    const custom=JSON.parse(localStorage.getItem('zibrat_custom_presets')||'{}');
-    const all={...presets,...custom};
-    const items=Object.keys(all).map(k=>[k, custom[k]?'punya lu':'gaya bawaan']);
-    $('presetPills').innerHTML=items.map(([k,d])=>`<button class="pill ${state.text===all[k].text&&state.size===all[k].size&&state.bg===all[k].bg?'active':''}" data-preset="${escapeHtml(k)}">${escapeHtml(k.toUpperCase())}</button>`).join('');
-    $('presetPills').querySelectorAll('.pill').forEach(btn=>btn.onclick=()=>{ const key=btn.dataset.preset; pushUndo(); Object.assign(state,all[key]); updatePreview(); toast('Gaya dipakai'); });
+    const keys=Object.keys(presets);
+    $('presetPills').innerHTML=keys.map(k=>`<button class="pill ${state.text===presets[k].text&&state.size===presets[k].size&&state.bg===presets[k].bg?'active':''}" data-preset="${escapeHtml(k)}">${escapeHtml(k.toUpperCase())}</button>`).join('');
+    $('presetPills').querySelectorAll('.pill').forEach(btn=>btn.onclick=()=>{ const key=btn.dataset.preset; pushUndo(); Object.assign(state,presets[key]); updatePreview(); toast('Gaya dipakai'); });
   }
 
   function renderHistory(){
@@ -1899,6 +2184,57 @@ body.dark .welcome-screen{background:var(--paper)}
 
     ctx.restore();
 
+    // Watermark — painted in the SAME preview-pixel coordinate space
+    // (previewW/previewH) as everything above, then scaled by the same
+    // sx/sy, so it lands in the exported PNG exactly where it sits in
+    // the live preview.
+    const wmText = (state.wmText||'').trim();
+    if(state.wmOn && wmText){
+      ctx.save();
+      ctx.scale(sx, sy);
+      drawWatermark(wmText, previewW, previewH);
+      ctx.restore();
+    }
+  }
+
+  function roundRectPath(x, y, w, h, r){
+    r = Math.max(0, Math.min(r, w/2, h/2));
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y, x+w, y+h, r);
+    ctx.arcTo(x+w, y+h, x, y+h, r);
+    ctx.arcTo(x, y+h, x, y, r);
+    ctx.arcTo(x, y, x+w, y, r);
+    ctx.closePath();
+  }
+
+  function drawWatermark(text, W, H){
+    const pad = 14, fontSize = 12, padX = 11, padY = 7;
+    ctx.font = `800 ${fontSize}px "Nunito Sans", Arial, sans-serif`;
+    const textW = ctx.measureText(text).width;
+    const pillW = textW + padX*2;
+    const pillH = fontSize + padY*2;
+    const r = pillH/2;
+
+    const pos = state.wmPos || 'br';
+    const row = pos[0], col = pos[1];
+    const cx = col==='l' ? pad : col==='c' ? (W-pillW)/2 : W-pad-pillW;
+    const cy = row==='t' ? pad : row==='m' ? (H-pillH)/2 : H-pad-pillH;
+
+    // hard 2px/2px accent shadow — matches the app's box-shadow look
+    ctx.fillStyle = '#8ace00';
+    roundRectPath(cx+2, cy+2, pillW, pillH, r);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(9,9,9,0.85)';
+    roundRectPath(cx, cy, pillW, pillH, r);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.font = `800 ${fontSize}px "Nunito Sans", Arial, sans-serif`;
+    ctx.fillText(text, cx+padX, cy+pillH/2+0.5);
   }
 
   function nudgeIcon(action, cls){
@@ -1917,21 +2253,21 @@ body.dark .welcome-screen{background:var(--paper)}
     setTimeout(() => el.classList.remove(cls), 200);
   }
   function undo(){
-    if(!undoStack.length){ flashErr($('btnUndo')); return toast('Tidak ada yang bisa diurungkan'); }
+    if(!undoStack.length){ flashErr(document.querySelector('.tab[data-action="undo"]')); return toast('Tidak ada yang bisa diurungkan'); }
     redoStack.push(snapshot());
     Object.assign(state, JSON.parse(undoStack.pop()));
     updatePreview();
     nudgeIcon('undo', 'z-undo-nudge');
-    nudgeEl($('btnUndo'), 'z-undo-nudge');
+    nudgeEl(document.querySelector('.tab[data-action="undo"]'), 'z-undo-nudge');
     toast('Diurungkan');
   }
   function redo(){
-    if(!redoStack.length){ flashErr($('btnRedo')); return toast('Tidak ada yang bisa diulangi'); }
+    if(!redoStack.length){ flashErr(document.querySelector('.tab[data-action="redo"]')); return toast('Tidak ada yang bisa diulangi'); }
     undoStack.push(snapshot());
     Object.assign(state, JSON.parse(redoStack.pop()));
     updatePreview();
     nudgeIcon('redo', 'z-redo-nudge');
-    nudgeEl($('btnRedo'), 'z-redo-nudge');
+    nudgeEl(document.querySelector('.tab[data-action="redo"]'), 'z-redo-nudge');
     toast('Diulangi');
   }
 
@@ -2053,9 +2389,6 @@ body.dark .welcome-screen{background:var(--paper)}
   $('btnSaveFloat').onclick = savePNG;
   $('btnResetTop').onclick = () => { spinIcon($('btnResetTop').querySelector('svg')); resetAll(); };
   $('btnRandom').onclick = () => randomize('all');
-  if ($('btnReset')) $('btnReset').onclick = resetAll;
-  $('btnUndo').onclick = undo;
-  $('btnRedo').onclick = redo;
   $('btnApplyHex').onclick = () => {
     const bg = $('bgHex').value.trim();
     const tx = $('txtHex').value.trim();
@@ -2076,13 +2409,58 @@ body.dark .welcome-screen{background:var(--paper)}
     toast('Warna dikembalikan');
   };
 
+  // Rasio bebas — quick presets + fully custom W:H, now tucked behind a
+  // compact "1:1 ▾" trigger on the preview instead of its own big section.
+  function openRatioPopover(){
+    $('ratioOverlay').classList.add('open');
+    $('ratioOverlay').setAttribute('aria-hidden','false');
+    $('ratioTrigger').setAttribute('aria-expanded','true');
+  }
+  function closeRatioPopover(){
+    $('ratioOverlay').classList.remove('open');
+    $('ratioOverlay').setAttribute('aria-hidden','true');
+    $('ratioTrigger').setAttribute('aria-expanded','false');
+  }
+  $('ratioTrigger').onclick = openRatioPopover;
+  $('ratioPopoverClose').onclick = closeRatioPopover;
+  $('ratioOverlay').addEventListener('click', e => { if(e.target === $('ratioOverlay')) closeRatioPopover(); });
+
+  $('ratioPills').querySelectorAll('button').forEach(btn => btn.onclick = () => {
+    setRatio(btn.dataset.rw, btn.dataset.rh);
+    toast('Rasio diganti ' + ratioLabel(btn.dataset.rw, btn.dataset.rh));
+    closeRatioPopover();
+  });
+  $('btnApplyRatio').onclick = () => {
+    const rw = parseFloat($('ratioW').value);
+    const rh = parseFloat($('ratioH').value);
+    if(!(rw>0) || !(rh>0)){ flashErr($('btnApplyRatio')); return toast('Isi rasio yang valid dulu'); }
+    setRatio(rw, rh);
+    flashOk($('btnApplyRatio'));
+    closeRatioPopover();
+  };
+
+  // Watermark
+  $('wmToggleSeg').querySelectorAll('button').forEach(btn => btn.onclick = () => {
+    pushUndo();
+    state.wmOn = btn.dataset.wm === 'on';
+    updatePreview();
+    toast(state.wmOn ? 'Watermark dinyalain' : 'Watermark dimatiin');
+  });
+  bindLiveControl($('wmText'), e => { state.wmText = e.target.value; }, ['change','blur']);
+  $('wmGrid').querySelectorAll('button').forEach(btn => btn.onclick = () => {
+    pushUndo();
+    state.wmPos = btn.dataset.pos;
+    updatePreview();
+    toast('Posisi watermark diganti');
+  });
+
   $('sheetClose').onclick = closeSheet;
   $('sheet').addEventListener('click', e => { if(e.target === $('sheet')) closeSheet(); });
 
   document.querySelectorAll('.dock .tab').forEach(btn => btn.onclick = () => {
     const action = btn.dataset.action;
-    if(action === 'undo') return $('btnUndo').click();
-    if(action === 'redo') return $('btnRedo').click();
+    if(action === 'undo') return undo();
+    if(action === 'redo') return redo();
     if(action === 'utility') return openUtilitySheet();
   });
 
