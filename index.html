@@ -170,6 +170,12 @@ html,body{overflow-x:hidden;max-width:100%;}
   font-weight:800;
   letter-spacing:-.15px;
   transition:transform .14s ease, box-shadow .14s ease, background .14s ease;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.action-icon{
+  width:18px;height:18px;flex:none;
+  stroke:var(--ink);stroke-width:2.2;fill:none;
+  stroke-linecap:round;stroke-linejoin:round;
 }
 .action:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
 .action.primary{background:var(--green)}
@@ -895,6 +901,62 @@ body:has(.sheet.open) .save-float{display:none !important}
 }
 </style>
 
+
+<style id="zibrat-dock-final-v26">
+/* V26 — final dock/save alignment: separate controls, one visual system */
+.dock{
+  left:50% !important; right:auto !important;
+  bottom:max(10px, env(safe-area-inset-bottom)) !important;
+  transform:translateX(-50%) !important;
+  width:min(470px, calc(100vw - 20px)) !important;
+  max-width:none !important; height:56px !important;
+  padding:4px !important; gap:4px !important;
+  border:3px solid var(--ink) !important; border-radius:20px !important;
+  background:color-mix(in srgb, var(--paper) 94%, transparent) !important;
+  box-shadow:4px 4px 0 var(--green), 0 10px 26px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08) !important;
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+}
+.dock .tab{
+  height:48px !important; border-radius:15px !important;
+  padding:0 5px !important; gap:5px !important;
+  font-size:8.5px !important; letter-spacing:.15px !important;
+}
+.dock .tab svg{width:20px !important;height:20px !important;stroke-width:2.5 !important}
+.dock .tab.active{
+  transform:none !important;
+  box-shadow:2px 2px 0 var(--ink), inset 0 1px 0 rgba(255,255,255,.34) !important;
+}
+.dock .tab:active{transform:translateY(1px) scale(.97) !important}
+
+.save-float{
+  right:max(16px, calc((100vw - 470px)/2 + 4px)) !important;
+  bottom:max(76px, calc(env(safe-area-inset-bottom) + 70px)) !important;
+  width:58px !important; height:58px !important;
+  border:3px solid var(--ink) !important; border-radius:18px !important;
+  background:var(--green) !important; color:var(--ink) !important;
+  box-shadow:4px 4px 0 var(--ink), 0 8px 22px rgba(0,0,0,.13) !important;
+  transition:transform .14s ease, box-shadow .14s ease, filter .14s ease !important;
+}
+.save-float svg{width:25px !important;height:25px !important;stroke-width:2.8 !important}
+.save-float:active{transform:translate(2px,2px) scale(.98) !important;box-shadow:2px 2px 0 var(--ink), 0 5px 14px rgba(0,0,0,.10) !important}
+
+.app{padding-bottom:84px !important}
+.toast{bottom:78px !important}
+body:has(.sheet.open) .save-float{display:none !important}
+
+@media(max-width:520px){
+  .dock{width:calc(100vw - 20px) !important}
+  .save-float{right:16px !important;bottom:max(76px,calc(env(safe-area-inset-bottom) + 70px)) !important}
+}
+@media(max-width:380px){
+  .dock{width:calc(100vw - 14px) !important;height:52px !important;bottom:max(7px,calc(env(safe-area-inset-bottom) + 3px)) !important;border-radius:18px !important}
+  .dock .tab{height:44px !important;font-size:8px !important;gap:4px !important}
+  .dock .tab svg{width:18px !important;height:18px !important}
+  .save-float{width:56px !important;height:56px !important;right:14px !important;bottom:max(72px,calc(env(safe-area-inset-bottom) + 64px)) !important;border-radius:17px !important}
+  .save-float svg{width:24px !important;height:24px !important}
+  .app{padding-bottom:78px !important}
+}
+</style>
 </head>
 <body>
 <div class="app">
@@ -922,8 +984,23 @@ body:has(.sheet.open) .save-float{display:none !important}
         <div class="stage-hint">geser brat untuk pindah • tarik sudut untuk ubah lebar</div>
       </div>
       <div class="action-row">
-        <button class="action secondary" id="btnCopy">SALIN GAMBAR</button>
-        <button class="action secondary" id="btnShare">BAGIIN</button>
+        <button class="action secondary" id="btnCopy">
+          <svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="4" y="4" width="12" height="14" rx="3"/>
+            <path d="M9 4V3a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-2"/>
+          </svg>
+          <span>SALIN GAMBAR</span>
+        </button>
+        <button class="action secondary" id="btnShare">
+          <svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="18" cy="5" r="2.6"/>
+            <circle cx="6" cy="12" r="2.6"/>
+            <circle cx="18" cy="19" r="2.6"/>
+            <path d="M8.3 10.6l7.4-4.2"/>
+            <path d="M8.3 13.4l7.4 4.2"/>
+          </svg>
+          <span>BAGIIN</span>
+        </button>
       </div>
     </div>
   </section>
