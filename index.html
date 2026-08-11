@@ -45,6 +45,13 @@
   /* "Brat" preview/canvas font: explicit condensed stack, OS-independent (Roboto Condensed is web-loaded, not system-dependent). */
   --brat:"Roboto Condensed","Arial Narrow","Liberation Sans Narrow","Nimbus Sans Narrow",Arial,sans-serif;
   --shadow:4px 4px 0 var(--ink);
+  /* ZiBrat signature motion: one physical language for every selectable
+     control — slide/settle with a slight overshoot, never a hard "pop".
+     Transform-only, 220ms, so it stays smooth on Android/low-end WebViews. */
+  --z-ease:cubic-bezier(.34,1.56,.64,1);
+  --z-ease-press:cubic-bezier(.3,.9,.4,1);
+  --z-dur:220ms;
+  --z-dur-press:130ms;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--ui);font-weight:800;letter-spacing:-.15px}
@@ -216,15 +223,28 @@ body.dark{--paper:#111;--ink:#f5f5f0;--soft:#222}.dark .top{background:linear-gr
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .seg{
   display:flex;gap:7px;background:#efefe7;border-radius:16px;padding:4px;border:2px solid var(--ink);
+  position:relative;
+}
+/* Signature sliding indicator — a single physical thumb that travels
+   underneath the labels instead of each button swapping its own fill. */
+.seg-thumb{
+  position:absolute;top:4px;bottom:4px;left:0;z-index:0;
+  border-radius:12px;
+  background:linear-gradient(180deg,var(--green2),var(--green));
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.18);
+  transition:transform var(--z-dur) var(--z-ease);
+  will-change:transform;
+  pointer-events:none;
 }
 .seg button{
+  position:relative;z-index:1;
   flex:1;border:0;background:transparent;border-radius:12px;padding:10px 4px;
   font-size:10px;font-weight:800;letter-spacing:-.08px;
-  color:#555;transition:transform .14s ease, background .14s ease, color .14s ease, box-shadow .14s ease;
+  color:#555;transition:transform .14s ease, color var(--z-dur) var(--z-ease);
 }
 .seg button.active{
-  background:linear-gradient(180deg,var(--green2),var(--green));
-  color:#111;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18)
+  background:transparent;
+  color:#111;box-shadow:none;
 }
 .seg button:active{transform:scale(.985)}
 .pills{
@@ -374,17 +394,28 @@ body.dark{--paper:#111;--ink:#f5f5f0;--soft:#222}.dark .top{background:linear-gr
 .textarea-lg{min-height:120px;font-size:19px;line-height:1.12}
 /* watermark position picker — 3x3 grid, each button shows a dot where the
    watermark will land, like a tiny live preview of the canvas */
-.wm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:2px}
+.wm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:2px;position:relative}
+/* Same signature thumb, now travelling in 2D between grid cells. */
+.wmgrid-thumb{
+  position:absolute;top:0;left:0;z-index:0;
+  border-radius:14px;
+  background:linear-gradient(180deg,var(--green2),var(--green));
+  box-shadow:1px 1px 0 var(--ink);
+  transition:transform var(--z-dur) var(--z-ease);
+  will-change:transform;
+  pointer-events:none;
+}
 .wm-grid button{
-  position:relative;height:50px;border:3px solid var(--ink);border-radius:14px;
+  position:relative;z-index:1;height:50px;border:3px solid var(--ink);border-radius:14px;
   background:linear-gradient(180deg,#fff 0%,#edece4 100%);
   box-shadow:2px 2px 0 var(--ink);
-  transition:transform .14s ease, background .14s ease, box-shadow .14s ease;
+  transition:transform .14s ease, background .13s ease, box-shadow .14s ease;
 }
 .wm-grid button::after{
   content:"";position:absolute;width:8px;height:8px;border-radius:3px;background:var(--ink);opacity:.55;
+  transition:background var(--z-dur) var(--z-ease), opacity var(--z-dur) var(--z-ease);
 }
-.wm-grid button.active{background:linear-gradient(180deg,var(--green2),var(--green));box-shadow:1px 1px 0 var(--ink);transform:translate(1px,1px)}
+.wm-grid button.active{background:transparent;box-shadow:none;transform:translate(1px,1px)}
 .wm-grid button.active::after{background:#111;opacity:1}
 .wm-grid button:active{transform:translate(1px,1px)}
 .dark .wm-grid button{background:#222}
@@ -1102,21 +1133,25 @@ body:has(.sheet.open) .save-float{display:none !important}
 .icon-btn svg{transition:transform .18s cubic-bezier(.2,.9,.25,1)}
 .icon-btn:active svg{transform:scale(.86)}
 
-/* -- Segmented control: sliding feel on active state changes -- */
-.seg button{transition:transform .16s cubic-bezier(.2,.9,.25,1), background .18s ease, color .18s ease, box-shadow .18s ease !important}
-.seg button.active{animation:zSegPop 200ms cubic-bezier(.22,.8,.24,1)}
-@keyframes zSegPop{0%{transform:scale(.92)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
+/* -- Segmented control: the sliding indicator (.seg-thumb, see base
+   stylesheet) carries the motion now — buttons just ease their label
+   color as the thumb passes under them. No separate "pop". -- */
+.seg button{transition:transform .16s cubic-bezier(.2,.9,.25,1), color var(--z-dur) var(--z-ease) !important}
 
-/* -- Swatches: pop when they become the active color -- */
-.swatch{transition:transform .14s ease, outline .16s ease, box-shadow .14s ease !important}
-.swatch.active{animation:zSwatchPop 220ms cubic-bezier(.22,.8,.24,1)}
-@keyframes zSwatchPop{0%{transform:scale(.82)}55%{transform:scale(1.1)}100%{transform:scale(1)}}
+/* -- Watermark position grid: same signature thumb (.wmgrid-thumb) slides
+   in 2D between cells; the dot marker eases with it. -- */
+.wm-grid button{transition:transform .14s ease, background var(--z-dur-press) ease, box-shadow .14s ease !important}
+
+/* -- Swatches: ring settles in with the ZiBrat signature overshoot -- */
+.swatch{transition:transform .14s ease, outline-color .16s ease, box-shadow .14s ease !important}
+.swatch.active{animation:zSwatchSettle var(--z-dur) var(--z-ease) both}
+@keyframes zSwatchSettle{from{transform:scale(.86)}to{transform:scale(1)}}
 .swatch:hover{transform:translateY(-1px)}
 
-/* -- Pills: pop when selected -- */
+/* -- Pills: fill settles in with the same signature overshoot -- */
 .pill{transition:transform .14s ease, background .16s ease, box-shadow .14s ease !important}
-.pill.active{animation:zPillPop 220ms cubic-bezier(.22,.8,.24,1)}
-@keyframes zPillPop{0%{transform:scale(.9)}55%{transform:scale(1.05)}100%{transform:scale(1)}}
+.pill.active{animation:zPillSettle var(--z-dur) var(--z-ease) both}
+@keyframes zPillSettle{from{transform:scale(.92)}to{transform:scale(1)}}
 
 /* -- Value badges: pulse whenever their text changes -- */
 .value.z-value-pulse,.badge.z-value-pulse{animation:zValuePulse 260ms cubic-bezier(.22,.8,.24,1)}
@@ -1157,8 +1192,9 @@ input[type=range].slider::-webkit-slider-thumb{transition:transform .12s ease}
 
 @media (prefers-reduced-motion:reduce){
   .icon-btn,.action,.mini-tool,.sheet-close,.history-item button,.pill,.opt,.swatch,.seg button,.badge,.save-float,.dock .tab,
-  .icon-btn svg,.seg button.active,.swatch.active,.pill.active,.value.z-value-pulse,.badge.z-value-pulse,
-  .history-item .fav.z-star-pop,.z-flash-ok,.z-flash-err,.z-icon-spin{
+  .icon-btn svg,.swatch.active,.pill.active,.value.z-value-pulse,.badge.z-value-pulse,
+  .history-item .fav.z-star-pop,.z-flash-ok,.z-flash-err,.z-icon-spin,
+  .seg-thumb,.wmgrid-thumb,.wm-grid button::after{
     animation:none !important;transition:none !important;
   }
 }
@@ -1809,6 +1845,48 @@ body.dark .welcome-screen{background:var(--paper)}
     $('wmGrid').querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.pos===state.wmPos));
   }
 
+  // ===== ZiBrat signature motion: one sliding indicator behind every
+  // segmented control, and a matching 2D one behind the watermark
+  // position grid. Both move via transform only (translate), eased with
+  // the shared --z-ease "slide + slight overshoot + settle" curve
+  // defined in CSS — so selection changes physically travel from the
+  // old choice to the new one instead of just popping/repainting. =====
+  function initSegThumbs(){
+    document.querySelectorAll('.seg').forEach(seg => {
+      if(seg.querySelector('.seg-thumb')) return;
+      const thumb = document.createElement('div');
+      thumb.className = 'seg-thumb';
+      thumb.setAttribute('aria-hidden','true');
+      seg.insertBefore(thumb, seg.firstChild);
+    });
+  }
+  function syncSegThumbs(){
+    document.querySelectorAll('.seg').forEach(seg => {
+      const thumb = seg.querySelector('.seg-thumb');
+      const active = seg.querySelector('button.active');
+      if(!thumb || !active) return;
+      thumb.style.width = active.offsetWidth + 'px';
+      thumb.style.transform = `translateX(${active.offsetLeft}px)`;
+    });
+  }
+  function initGridThumb(){
+    const grid = $('wmGrid');
+    if(!grid || grid.querySelector('.wmgrid-thumb')) return;
+    const thumb = document.createElement('div');
+    thumb.className = 'wmgrid-thumb';
+    thumb.setAttribute('aria-hidden','true');
+    grid.insertBefore(thumb, grid.firstChild);
+  }
+  function syncGridThumb(){
+    const grid = $('wmGrid');
+    const thumb = grid && grid.querySelector('.wmgrid-thumb');
+    const active = grid && grid.querySelector('button.active');
+    if(!thumb || !active) return;
+    thumb.style.width = active.offsetWidth + 'px';
+    thumb.style.height = active.offsetHeight + 'px';
+    thumb.style.transform = `translate(${active.offsetLeft}px, ${active.offsetTop}px)`;
+  }
+
   function getFontFamily(){
     // Same order as --brat in CSS: the variable webfont first (real 100-900
     // weight axis, no synthetic bold at any step), OS fonts as fallback only.
@@ -1955,6 +2033,8 @@ body.dark .welcome-screen{background:var(--paper)}
     renderRatioUI();
     renderWatermarkUI();
     renderWatermarkOverlay();
+    syncSegThumbs();
+    syncGridThumb();
     saveState();
     // Subtle response pulse on the preview stage — skipped while an active
     // drag/resize/pinch gesture is in progress so it never fights 1:1 tracking.
@@ -2590,6 +2670,8 @@ body.dark .welcome-screen{background:var(--paper)}
 
   function init(){
     if(localStorage.getItem('zibrat_theme')==='dark') document.body.classList.add('dark');
+    initSegThumbs();
+    initGridThumb();
     renderSwatches();
     renderPresets();
     renderHistory();
