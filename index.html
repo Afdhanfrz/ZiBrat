@@ -944,7 +944,17 @@ body:has(.sheet.open) .save-float{display:none !important}
 @keyframes zRandSpin{0%{transform:rotate(0deg)}55%{transform:rotate(12deg)}100%{transform:rotate(0deg)}}
 
 /* -- Save: tiny bounce/pop on success -- */
+/* Save button: keep the original ZiBrat success pop visible before the overlay takes over. */
+.save-float.z-save-pop{
+  animation:zSaveButtonPop 280ms var(--ease-zibrat) both;
+}
 .save-float.z-save-pop svg{animation:zPop 240ms var(--ease-zibrat)}
+@keyframes zSaveButtonPop{
+  0%{transform:translate(0,0) scale(1)}
+  32%{transform:translate(2px,2px) scale(.91)}
+  68%{transform:translate(0,-3px) scale(1.07)}
+  100%{transform:translate(0,0) scale(1)}
+}
 
 /* -- Undo/redo: tiny directional nudge -- */
 .z-undo-nudge{animation:zNudgeLeft 160ms var(--ease-snappy)}
@@ -1333,6 +1343,261 @@ body.dark .welcome-screen{background:var(--paper)}
   .welcome-screen.wc-exit{animation:none !important;opacity:0 !important}
 }
 </style>
+
+<style id="zibrat-download-overlay-v3">
+/* ===== ZiBrat download celebration v3 =====
+   Brutalist + premium: cream canvas, hard shadows, green offsets, controlled motion.
+*/
+.download-overlay{
+  position:fixed;inset:0;z-index:20000;display:none;align-items:center;justify-content:center;
+  padding:24px 12px calc(24px + env(safe-area-inset-bottom));
+  overflow:hidden;isolation:isolate;
+}
+.download-overlay.open{display:flex;animation:zDOverlayIn 360ms cubic-bezier(.2,.85,.2,1) both}
+
+.download-overlay__backdrop{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(circle at 50% 40%,rgba(138,206,0,.16),transparent 34%),
+    repeating-linear-gradient(-8deg,rgba(5,5,5,.035) 0 2px,transparent 2px 14px),
+    rgba(244,244,238,.88);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  opacity:0;animation:zDBackdropIn 360ms ease-out forwards;
+}
+.download-overlay::before{
+  content:"✓";
+  position:absolute;left:-34px;bottom:4%;
+  color:rgba(138,206,0,.12);
+  font-size:clamp(220px,65vw,430px);font-weight:900;
+  line-height:.7;transform:rotate(-12deg);
+  pointer-events:none;
+}
+.download-overlay::after{
+  content:"PNG / KE SAVE";
+  position:absolute;right:14px;top:16px;
+  padding:7px 10px 6px;
+  border:3px solid var(--ink);border-radius:9px;
+  background:#fff;color:var(--ink);
+  box-shadow:4px 4px 0 var(--green);
+  font-size:10px;font-weight:900;letter-spacing:.5px;
+  transform:rotate(3deg) translateY(-10px) scale(.85);
+  opacity:0;
+}
+.download-overlay.open::after{animation:zDTagIn 420ms cubic-bezier(.2,.9,.2,1) 300ms both}
+
+.download-modal{
+  position:relative;z-index:1;width:min(430px,calc(100vw - 20px));
+  display:flex;flex-direction:column;align-items:center;
+  gap:12px;text-align:center;transform-origin:50% 45%;
+}
+.download-modal::before,
+.download-modal::after{
+  content:"";position:absolute;z-index:-1;width:38px;height:38px;
+  border:4px solid var(--ink);opacity:0;
+}
+.download-modal::before{
+  left:-2px;top:43%;border-right:0;border-bottom:0;
+  transform:translate(-22px,8px) rotate(-8deg);
+}
+.download-modal::after{
+  right:-2px;top:53%;border-left:0;border-top:0;
+  transform:translate(22px,-8px) rotate(-8deg);
+}
+.download-overlay.open .download-modal::before{animation:zDMarkIn 360ms ease-out 210ms both}
+.download-overlay.open .download-modal::after{animation:zDMarkIn 360ms ease-out 250ms both}
+
+.download-title{
+  position:relative;z-index:4;
+  align-self:center;margin-bottom:-2px;
+  padding:7px 12px 6px;
+  color:var(--ink);
+  font-size:clamp(30px,8.8vw,48px);line-height:.88;
+  font-weight:900;letter-spacing:-2.7px;text-transform:uppercase;
+  background:#fff;
+  border:4px solid var(--ink);border-radius:10px;
+  box-shadow:7px 7px 0 var(--green);
+  opacity:0;
+  transform:translateY(-18px) scale(.78) rotate(-2deg);
+}
+.download-title::before{
+  content:"";
+  position:absolute;left:10px;right:10px;bottom:5px;height:6px;
+  background:var(--green);z-index:-1;transform:skewX(-18deg);
+}
+.download-overlay.open .download-title{
+  animation:zDTitleIn 520ms cubic-bezier(.18,.9,.2,1) 120ms both;
+}
+
+.download-preview-wrap{
+  position:relative;width:min(380px,88vw);padding:7px;
+  transform:translateY(38px) scale(.76) rotate(1.5deg);
+  opacity:0;
+}
+.download-overlay.open .download-preview-wrap{
+  animation:zDPreviewIn 620ms cubic-bezier(.16,.9,.2,1) 30ms both;
+}
+.download-preview-wrap::before{
+  content:"HASIL BARU";
+  position:absolute;z-index:5;left:-11px;top:-11px;
+  padding:6px 9px 5px;
+  border:3px solid var(--ink);border-radius:8px;
+  background:var(--green);color:var(--ink);
+  box-shadow:4px 4px 0 var(--ink);
+  font-size:10px;font-weight:900;letter-spacing:.4px;
+  transform:rotate(-5deg) scale(.72);opacity:0;
+}
+.download-overlay.open .download-preview-wrap::before{
+  animation:zDStickerIn 400ms cubic-bezier(.2,.9,.2,1) 330ms both;
+}
+.download-preview-wrap::after{
+  content:"";
+  position:absolute;right:-9px;bottom:14px;z-index:5;
+  width:18px;height:18px;border:3px solid var(--ink);border-radius:50%;
+  background:#fff;box-shadow:3px 3px 0 var(--ink);
+  transform:scale(.2) rotate(-30deg);opacity:0;
+}
+.download-overlay.open .download-preview-wrap::after{
+  animation:zDDotIn 380ms cubic-bezier(.2,.9,.2,1) 400ms both;
+}
+.download-preview-shadow{
+  position:absolute;inset:13px -1px 1px 13px;
+  border:4px solid var(--ink);border-radius:25px;
+  background:var(--green);box-shadow:0 18px 34px rgba(5,5,5,.16);
+  transform:rotate(1.8deg);
+}
+.download-preview{
+  position:relative;display:block;width:100%;height:auto;max-height:58vh;
+  object-fit:contain;border:4px solid var(--ink);border-radius:22px;background:#fff;
+  box-shadow:7px 7px 0 var(--ink);transform:translateZ(0);
+}
+
+.download-ok{
+  position:relative;z-index:3;min-width:184px;
+  border:4px solid var(--ink);border-radius:17px;
+  padding:13px 24px 12px;background:var(--green);color:var(--ink);
+  box-shadow:5px 5px 0 var(--ink);
+  font-size:14px;font-weight:900;letter-spacing:.15px;cursor:pointer;
+  opacity:0;transform:translateY(18px) scale(.90);
+}
+.download-overlay.open .download-ok{
+  animation:zDButtonIn 440ms cubic-bezier(.18,.9,.2,1) 450ms both;
+}
+.download-ok::before{
+  content:"✓";
+  position:absolute;left:-13px;top:-12px;width:24px;height:24px;
+  display:grid;place-items:center;border:3px solid var(--ink);border-radius:50%;
+  background:#fff;color:var(--ink);font-size:13px;font-weight:900;
+  box-shadow:3px 3px 0 var(--ink);
+  opacity:0;transform:scale(.3) rotate(-20deg);
+}
+.download-overlay.open .download-ok::before{
+  animation:zDDotIn 360ms cubic-bezier(.2,.9,.2,1) 650ms both;
+}
+.download-ok:active{
+  transform:translate(3px,3px) scale(.98)!important;
+  box-shadow:2px 2px 0 var(--ink);
+}
+.download-ok:focus-visible{outline:3px solid var(--green);outline-offset:4px}
+
+@keyframes zDOverlayIn{from{opacity:0}to{opacity:1}}
+@keyframes zDBackdropIn{from{opacity:0}to{opacity:1}}
+@keyframes zDTagIn{
+  0%{opacity:0;transform:rotate(3deg) translateY(-10px) scale(.85)}
+  65%{opacity:1;transform:rotate(3deg) translateY(2px) scale(1.05)}
+  100%{opacity:1;transform:rotate(3deg) translateY(0) scale(1)}
+}
+@keyframes zDMarkIn{
+  0%{opacity:0;transform:translate(-22px,8px) rotate(-8deg) scale(.55)}
+  100%{opacity:.72;transform:translate(-22px,8px) rotate(-8deg) scale(1)}
+}
+@keyframes zDTitleIn{
+  0%{opacity:0;transform:translateY(-22px) scale(.78) rotate(-2deg)}
+  48%{opacity:1;transform:translateY(4px) scale(1.08) rotate(.7deg)}
+  72%{transform:translateY(-1px) scale(.985) rotate(0)}
+  100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}
+}
+@keyframes zDPreviewIn{
+  0%{opacity:0;transform:translateY(38px) scale(.76) rotate(1.5deg)}
+  50%{opacity:1;transform:translateY(-8px) scale(1.025) rotate(-.5deg)}
+  73%{transform:translateY(2px) scale(.995) rotate(.1deg)}
+  100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}
+}
+@keyframes zDStickerIn{
+  0%{opacity:0;transform:rotate(-5deg) scale(.72) translateY(8px)}
+  65%{opacity:1;transform:rotate(-5deg) scale(1.08) translateY(-1px)}
+  100%{opacity:1;transform:rotate(-5deg) scale(1)}
+}
+@keyframes zDDotIn{
+  0%{opacity:0;transform:scale(.2) rotate(-30deg)}
+  65%{opacity:1;transform:scale(1.18) rotate(8deg)}
+  100%{opacity:1;transform:scale(1) rotate(0)}
+}
+@keyframes zDButtonIn{
+  0%{opacity:0;transform:translateY(18px) scale(.90)}
+  58%{opacity:1;transform:translateY(-3px) scale(1.045)}
+  78%{transform:translateY(1px) scale(.99)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+.download-overlay.closing .download-modal{animation:zDClose 300ms cubic-bezier(.2,.8,.2,1) both}
+.download-overlay.closing .download-overlay__backdrop{animation:zDBackdropOut 280ms ease-in both}
+@keyframes zDClose{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(10px) scale(.96)}}
+@keyframes zDBackdropOut{from{opacity:1}to{opacity:0}}
+
+body.download-overlay-open .toast{display:none!important}
+
+/* Restore the recognizable ZiBrat save success: bounce + check badge. */
+.save-float.z-save-pop{
+  animation:zSaveButtonPop 300ms cubic-bezier(.18,.9,.2,1) both;
+}
+.save-float.z-save-pop svg{animation:zPop 250ms cubic-bezier(.2,.9,.2,1) both}
+.save-float.z-save-pop::after{
+  content:"✓";
+  position:absolute;right:-8px;top:-9px;
+  width:25px;height:25px;display:grid;place-items:center;
+  border:3px solid var(--ink);border-radius:50%;
+  background:#fff;color:var(--ink);
+  box-shadow:3px 3px 0 var(--ink);
+  font-size:14px;font-weight:900;line-height:1;
+  opacity:0;transform:scale(.25) rotate(-20deg);
+  animation:zSaveCheck 420ms cubic-bezier(.18,.9,.2,1) 90ms both;
+}
+@keyframes zSaveButtonPop{
+  0%{transform:translate(0,0) scale(1)}
+  28%{transform:translate(2px,2px) scale(.91)}
+  62%{transform:translate(0,-4px) scale(1.08)}
+  82%{transform:translate(0,1px) scale(.98)}
+  100%{transform:translate(0,0) scale(1)}
+}
+@keyframes zSaveCheck{
+  0%{opacity:0;transform:scale(.25) rotate(-20deg)}
+  60%{opacity:1;transform:scale(1.18) rotate(7deg)}
+  100%{opacity:1;transform:scale(1) rotate(0)}
+}
+
+@media(max-width:420px){
+  .download-overlay{padding-inline:10px}
+  .download-title{font-size:clamp(28px,9.2vw,40px);letter-spacing:-2.2px}
+  .download-preview-wrap{width:min(360px,91vw)}
+  .download-preview{max-height:55vh}
+}
+@media(prefers-reduced-motion:reduce){
+  .download-overlay,.download-overlay__backdrop,.download-title,.download-preview-wrap,.download-ok,
+  .download-overlay::after,.download-modal::before,.download-modal::after,
+  .download-preview-wrap::before,.download-preview-wrap::after,.download-ok::before,
+  .download-overlay.closing .download-modal,.download-overlay.closing .download-overlay__backdrop,
+  .save-float.z-save-pop,.save-float.z-save-pop svg,.save-float.z-save-pop::after{
+    animation:none!important;transition:none!important
+  }
+  .download-overlay.open{opacity:1}
+  .download-overlay__backdrop{opacity:1}
+  .download-title,.download-preview-wrap,.download-ok{opacity:1;transform:none}
+  .download-overlay::after{opacity:1;transform:rotate(3deg) translateY(0) scale(1)}
+  .download-modal::before,.download-modal::after{opacity:.72}
+  .download-preview-wrap::before{opacity:1;transform:rotate(-5deg) scale(1)}
+  .download-preview-wrap::after,.download-ok::before{opacity:1;transform:none}
+  .save-float.z-save-pop::after{opacity:1;transform:none}
+}
+</style>
 </head>
 <body>
 <div id="welcomeScreen" class="welcome-screen" role="dialog" aria-modal="true" aria-label="Selamat datang di ZiBrat">
@@ -1367,11 +1632,25 @@ body.dark .welcome-screen{background:var(--paper)}
     <div class="hero-inner" id="heroInner">
       <div class="preview-stage" id="stage">
         <div class="text-box" id="textBox" aria-label="Kotak teks yang bisa dipindah">
-          <div class="drag-handle" title="Geser buat mindahin">↕</div>
+          <div class="drag-handle" title="Geser buat mindahin" aria-label="Geser untuk memindahkan">
+            <svg class="gesture-icon drag-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v18M3 12h18"/>
+              <path d="m9 6 3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/>
+            </svg>
+          </div>
           <div class="content" id="textDisplay"></div>
-          <div class="resize-handle" title="Tarik buat gede-kecilin">↘</div>
+          <div class="resize-handle" title="Tarik buat gede-kecilin" aria-label="Tarik sudut untuk mengubah lebar">
+            <svg class="gesture-icon resize-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 19 19 5"/>
+              <path d="M11 19H5v-6M19 13V5h-8"/>
+            </svg>
+          </div>
         </div>
-        <div class="stage-hint">geser brat untuk pindah • tarik sudut untuk ubah lebar</div>
+        <div class="stage-hint">
+          <span class="hint-item"><svg class="hint-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18"/><path d="m9 6 3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg> geser</span>
+          <span class="hint-item"><svg class="hint-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5"/><path d="M11 19H5v-6M19 13V5h-8"/></svg> resize</span>
+          <span class="hint-item"><svg class="hint-icon pinch-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="2.2"/><circle cx="16" cy="12" r="2.2"/><path d="M10.5 12h3"/><path d="m7 8-3 4 3 4M17 8l3 4-3 4"/></svg> 2 jari</span>
+        </div>
         <div class="watermark-tag" id="watermarkPreview" aria-hidden="true"></div>
         <button type="button" class="ratio-trigger" id="ratioTrigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="ratioPopover" title="Ganti rasio">
           <span id="ratioVal">1:1</span><span class="rt-arrow" aria-hidden="true">▾</span>
@@ -1406,7 +1685,7 @@ body.dark .welcome-screen{background:var(--paper)}
     </div>
     <div class="card pad">
       <div class="control" style="margin-top:0">
-        <div class="label"><span>teks kamu</span><span class="value">langsung tampil</span></div>
+        <div class="label"><span>ketik disini </span><span class="value">langsung tampil</span></div>
         <textarea id="txt" class="textarea textarea-lg" spellcheck="false" placeholder="tulis apa aja...">i'm having a brat summer</textarea>
       </div>
     </div>
@@ -1633,6 +1912,18 @@ body.dark .welcome-screen{background:var(--paper)}
 
 <div class="toast" id="toast"></div>
 
+<div class="download-overlay" id="downloadOverlay" aria-hidden="true">
+  <div class="download-overlay__backdrop"></div>
+  <div class="download-modal" role="dialog" aria-modal="true" aria-labelledby="downloadTitle">
+    <div class="download-title" id="downloadTitle">ANJAY KESIMPEN</div>
+    <div class="download-preview-wrap">
+      <div class="download-preview-shadow" aria-hidden="true"></div>
+      <img class="download-preview" id="downloadPreview" alt="Hasil ZiBrat yang baru disimpan">
+    </div>
+    <button class="download-ok" id="downloadOk" type="button">OKE, BAIK</button>
+  </div>
+</div>
+
 <canvas id="exportCanvas" width="1200" height="1200" style="display:none"></canvas>
 
 <script>
@@ -1642,8 +1933,8 @@ body.dark .welcome-screen{background:var(--paper)}
   const $ = id => document.getElementById(id);
 
   const defaults = {
-    text: "i'm having a brat summer",
-    size: 106,
+    text: "gak tau mau bikin apa",
+    size: 56,
     rot: 0,
     letter: -1,
     align: 'left',
@@ -1729,6 +2020,53 @@ body.dark .welcome-screen{background:var(--paper)}
     t.classList.add('show');
     clearTimeout(window._toastT);
     window._toastT = setTimeout(() => t.classList.remove('show'), 1500);
+  }
+
+  let downloadPreviewUrl = null;
+
+  function openDownloadOverlay(blob){
+    const overlay = $('downloadOverlay');
+    const img = $('downloadPreview');
+    const ok = $('downloadOk');
+    if(!overlay || !img || !ok || !blob) return;
+
+    if(downloadPreviewUrl){
+      URL.revokeObjectURL(downloadPreviewUrl);
+      downloadPreviewUrl = null;
+    }
+    downloadPreviewUrl = URL.createObjectURL(blob);
+    img.src = downloadPreviewUrl;
+
+    overlay.classList.remove('closing');
+    overlay.classList.remove('open');
+    void overlay.offsetWidth;
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden','false');
+    document.body.classList.add('download-overlay-open');
+
+    // Focus after the entrance motion starts so the button is ready without
+    // stealing the visual landing moment of the preview.
+    setTimeout(() => { try{ ok.focus({preventScroll:true}); }catch(e){} }, 720);
+  }
+
+  function closeDownloadOverlay(){
+    const overlay = $('downloadOverlay');
+    const img = $('downloadPreview');
+    if(!overlay || !overlay.classList.contains('open')) return;
+
+    overlay.classList.add('closing');
+    overlay.setAttribute('aria-hidden','true');
+    document.body.classList.remove('download-overlay-open');
+
+    setTimeout(() => {
+      overlay.classList.remove('open','closing');
+      if(img) img.removeAttribute('src');
+      if(downloadPreviewUrl){
+        URL.revokeObjectURL(downloadPreviewUrl);
+        downloadPreviewUrl = null;
+      }
+      $('btnSaveFloat')?.focus({preventScroll:true});
+    }, 290);
   }
   function hexOk(v){ return /^#[0-9a-fA-F]{6}$/.test((v||'').trim()); }
   function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
@@ -2136,10 +2474,15 @@ body.dark .welcome-screen{background:var(--paper)}
       a.remove();
       setTimeout(()=>URL.revokeObjectURL(url),3000);
       renderHistory();
-      toast('✓ PNG disimpan ke download');
-      $('btnSaveFloat')?.classList.add('z-save-pop');
-      flashOk($('btnSaveFloat'));
-      setTimeout(()=>$('btnSaveFloat')?.classList.remove('z-save-pop'),300);
+      const saveBtn = $('btnSaveFloat');
+      if(saveBtn){
+        saveBtn.classList.remove('z-save-pop');
+        void saveBtn.offsetWidth;
+        saveBtn.classList.add('z-save-pop');
+        flashOk(saveBtn);
+        setTimeout(()=>saveBtn.classList.remove('z-save-pop'),320);
+      }
+      setTimeout(()=>openDownloadOverlay(blob),420);
       return;
     }catch(e){}
 
@@ -2149,7 +2492,15 @@ body.dark .welcome-screen{background:var(--paper)}
       window.open(url,'_blank','noopener');
       setTimeout(()=>URL.revokeObjectURL(url),10000);
       renderHistory();
-      toast('PNG dibuka — tekan lama untuk simpan');
+      const saveBtn = $('btnSaveFloat');
+      if(saveBtn){
+        saveBtn.classList.remove('z-save-pop');
+        void saveBtn.offsetWidth;
+        saveBtn.classList.add('z-save-pop');
+        flashOk(saveBtn);
+        setTimeout(()=>saveBtn.classList.remove('z-save-pop'),320);
+      }
+      setTimeout(()=>openDownloadOverlay(blob),420);
     }catch{
       flashErr($('btnSaveFloat'));
       toast('Browser ini ngeblok penyimpanan PNG');
@@ -2608,6 +2959,7 @@ body.dark .welcome-screen{background:var(--paper)}
   $('btnCopy').onclick = copyImage;
   $('btnShare').onclick = shareImage;
   $('btnSaveFloat').onclick = savePNG;
+  $('downloadOk').onclick = closeDownloadOverlay;
   $('btnResetTop').onclick = () => { spinIcon($('btnResetTop').querySelector('svg')); resetAll(); };
   $('btnRandom').onclick = () => randomize('all');
   $('btnApplyHex').onclick = () => {
@@ -2698,7 +3050,21 @@ body.dark .welcome-screen{background:var(--paper)}
   function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
   function angle(a,b){ return Math.atan2(b.y-a.y,a.x-b.x)*180/Math.PI; }
 
+  // Stage hint: tampil sampai user benar-benar melakukan gesture pertama.
+  // Status disimpan agar hint tidak mengganggu user yang sudah pernah belajar.
+  const stageHint = document.querySelector('.stage-hint');
+  const STAGE_HINT_KEY = 'zibrat_stage_hint_seen_v1';
+  function hideStageHint(){
+    if(!stageHint) return;
+    stageHint.classList.add('z-hidden');
+    try{ localStorage.setItem(STAGE_HINT_KEY,'1'); }catch{}
+  }
+  try{
+    if(localStorage.getItem(STAGE_HINT_KEY)==='1') stageHint?.classList.add('z-hidden');
+  }catch{}
+
   textBox.addEventListener('pointerdown', e=>{
+    if(!stageHint?.classList.contains('z-hidden')) hideStageHint();
     // FIX UNDO: hanya push satu snapshot kalau ini benar-benar awal gesture baru.
     // Kalau jari kedua nempel di tengah gesture (misal drag → pinch), gesture
     // sudah tidak null, jadi jangan push undo lagi (biar tetap 1 gesture = 1 state).
@@ -2840,6 +3206,47 @@ body.dark .welcome-screen{background:var(--paper)}
 })();
 </script>
 
+
+<style id="zibrat-v32-gesture-icons">
+/* V32 icon refresh — visual only; direct-manipulation logic is unchanged. */
+.gesture-icon{
+  width:18px;height:18px;display:block;
+  fill:none;stroke:currentColor;stroke-width:2.1;
+  stroke-linecap:round;stroke-linejoin:round;
+  pointer-events:none;
+}
+.drag-handle .gesture-icon{width:17px;height:17px}
+.resize-handle .gesture-icon{width:18px;height:18px}
+.stage-hint{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:9px !important;
+  flex-wrap:wrap !important;
+  opacity:1;
+  transform:translateY(0);
+  transition:opacity 180ms ease, transform 180ms ease;
+}
+.stage-hint.z-hidden{
+  opacity:0 !important;
+  transform:translateY(4px) !important;
+}
+.hint-item{
+  display:inline-flex;align-items:center;gap:4px;
+  white-space:nowrap;
+}
+.hint-icon{
+  width:12px;height:12px;display:block;
+  fill:none;stroke:currentColor;stroke-width:2.2;
+  stroke-linecap:round;stroke-linejoin:round;
+  opacity:.95;
+  flex:0 0 auto;
+}
+@media(max-width:520px){
+  .stage-hint{gap:6px !important;font-size:8px !important}
+  .hint-icon{width:11px;height:11px}
+}
+</style>
 
 <style id="zibrat-v15-fixes">
 /* V15 — preview interaction + mobile save */
