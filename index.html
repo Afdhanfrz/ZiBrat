@@ -2359,45 +2359,186 @@ body.dark .welcome-screen{background:var(--paper)}
     });
   }
 
+  // ===== Curated random design generator ("Acak") =====
+  // Instead of rolling every parameter independently (which produced
+  // ugly/unbalanced previews), we pick one internally-curated "style"
+  // per roll, then jitter its ranges slightly. Each style already
+  // encodes a harmonious relationship between size/weight/box/position/
+  // color so the result reads as an intentional ZiBrat design, not a
+  // pile of random numbers.
+
+  const RAND_WORDS = [
+    "anjir cakep",
+    "yaelah",
+    "bodo amat",
+    "gak ngaruh jir",
+    "sok asik lu",
+    "bacot dikit",
+    "apaan sih",
+    "males jir",
+    "gas lah",
+    "gak usah ribet",
+    "anjay",
+    "udah diem",
+    "lu kira gua peduli?",
+    "wkwk tolol",
+    "santuy goblok",
+    "mampus dah",
+    "skip aja lah",
+    "kocak banget",
+    "gak jelas lu",
+    "yaudah terserah"
+  ];
+
+  // Color pools grouped by mood, drawn from the existing palettes so every
+  // roll still uses on-brand ZiBrat colors — just picked in sensible groups
+  // instead of two fully independent random picks.
+  const poolNeon = ['#8ACE00','#b8ff17','#d9ff32','#e9ff8a','#c8ff00','#9bff4d'];
+  const poolDark = ['#111111','#1C1C1C','#14213D','#1B1F3B','#2C3E75','#001F3F','#36454F','#4B0082'];
+  const poolLight = ['#ffffff','#f4f4ee','#F7E7CE','#E0BFB8'];
+  const poolElegant = premiumColors;
+  const poolMonoTxt = ['#050505','#ffffff','#222222','#5b5b5b'];
+  const poolVividTxt = ['#ff4fd8','#5b5bff','#ff5a36','#ffd400','#8ACE00'];
+  const poolLoudBg = poolNeon.concat(['#B0413E','#C1440E','#E5C158','#FFBF00']);
+
+  const RAND_STYLES = {
+    bold:     { label:'Bold',     textLength:'medium', sizeRange:[112,158], fontWeightRange:[700,900], weightOptions:['tebal'],           alignOptions:['left','center'],  rotRange:[-3,3],  letterRange:[-1,2],  gapRange:[0,10],   boxPctRange:[70,88], bgPool:poolNeon.concat(poolDark),          txtPool:poolMonoTxt,                minContrast:5,   positionMode:'natural' },
+    clean:    { label:'Clean',    textLength:'medium', sizeRange:[78,116],  fontWeightRange:[400,700], weightOptions:['normal'],           alignOptions:['left'],           rotRange:[0,0],   letterRange:[-2,0],  gapRange:[-4,12],  boxPctRange:[58,76], bgPool:poolLight.concat(poolElegant.slice(0,12)), txtPool:poolMonoTxt,          minContrast:4.5, positionMode:'natural' },
+    chaotic:  { label:'Chaotic',  textLength:'long',   sizeRange:[86,140],  fontWeightRange:[600,900], weightOptions:['tebal','normal'],   alignOptions:['left','right'],   rotRange:[-8,8],  letterRange:[-2,5],  gapRange:[-8,26],  boxPctRange:[70,90], bgPool:poolNeon.concat(poolElegant),       txtPool:poolMonoTxt.concat(poolVividTxt), minContrast:4, positionMode:'natural' },
+    minimal:  { label:'Minimal',  textLength:'short',  sizeRange:[48,80],   fontWeightRange:[100,400], weightOptions:['tipis'],            alignOptions:['left','center'],  rotRange:[0,0],   letterRange:[-1,1],  gapRange:[-4,14],  boxPctRange:[38,56], bgPool:poolLight.concat(poolElegant.slice(12,24)), txtPool:poolMonoTxt,        minContrast:4.5, positionMode:'corner' },
+    centered: { label:'Centered', textLength:'medium', sizeRange:[92,138],  fontWeightRange:[600,800], weightOptions:['normal','tebal'],   alignOptions:['center'],         rotRange:[0,0],   letterRange:[-1,2],  gapRange:[0,10],   boxPctRange:[68,84], bgPool:poolNeon.concat(poolElegant),       txtPool:poolMonoTxt,                minContrast:4.5, positionMode:'center' },
+    sticker:  { label:'Sticker',  textLength:'short',  sizeRange:[100,148], fontWeightRange:[800,900], weightOptions:['tebal'],            alignOptions:['center'],         rotRange:[-6,6],  letterRange:[-1,3],  gapRange:[0,14],   boxPctRange:[76,92], bgPool:poolNeon,                            txtPool:poolMonoTxt,                minContrast:5,   positionMode:'center' },
+    loud:     { label:'Loud',     textLength:'short',  sizeRange:[136,178], fontWeightRange:[800,900], weightOptions:['tebal'],            alignOptions:['left','center'],  rotRange:[-4,4],  letterRange:[0,4],   gapRange:[0,20],   boxPctRange:[80,94], bgPool:poolLoudBg,                          txtPool:poolMonoTxt,                minContrast:5,   positionMode:'top' },
+    tiny:     { label:'Tiny',     textLength:'short',  sizeRange:[34,58],   fontWeightRange:[200,500], weightOptions:['tipis','normal'],   alignOptions:['left','center'],  rotRange:[-2,2],  letterRange:[-1,2],  gapRange:[-8,10],  boxPctRange:[28,44], bgPool:paletteBg,                           txtPool:poolMonoTxt.concat(poolVividTxt), minContrast:4.5, positionMode:'corner' }
+  };
+
+  function randPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function randFloat(min,max){ return min + Math.random()*(max-min); }
+  function randStep(min,max,step){ return Math.round(randFloat(min,max)/step)*step; }
+
+  function hexToRgbArr(hex){
+    hex = String(hex).replace('#','').trim();
+    if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+    const num = parseInt(hex,16) || 0;
+    return [(num>>16)&255, (num>>8)&255, num&255];
+  }
+  function relLuminance(rgb){
+    const a = rgb.map(v=>{
+      v/=255;
+      return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4);
+    });
+    return 0.2126*a[0] + 0.7152*a[1] + 0.0722*a[2];
+  }
+  function contrastRatio(hex1, hex2){
+    const L1 = relLuminance(hexToRgbArr(hex1));
+    const L2 = relLuminance(hexToRgbArr(hex2));
+    const hi = Math.max(L1,L2), lo = Math.min(L1,L2);
+    return (hi+0.05)/(lo+0.05);
+  }
+  // Pick a background from the style's mood pool, then pick a text color
+  // that's guaranteed to read well on it — never two independent rolls
+  // that happen to collide (e.g. white-on-white).
+  function pickContrastPair(bgPool, txtPool, minRatio){
+    minRatio = minRatio || 4.5;
+    const bg = randPick(bgPool);
+    let candidates = txtPool.filter(t => contrastRatio(bg,t) >= minRatio);
+    if(!candidates.length) candidates = txtPool.filter(t => contrastRatio(bg,t) >= 3.0);
+    if(!candidates.length) candidates = paletteTxt.slice().sort((a,b) => contrastRatio(bg,b)-contrastRatio(bg,a));
+    return { bg, txt: randPick(candidates.length ? candidates.slice(0, Math.max(1,Math.ceil(candidates.length/2))) : ['#050505']) };
+  }
+
+  // Places the (already-measured, real pixel) text box so it never sits
+  // flush against an edge or dead-center by accident — margins scale with
+  // stage size, and each mode encodes a deliberate composition instead of
+  // a raw random x/y.
+  function computeRandomPosition(mode, W, H, boxW, boxH){
+    const marginX = Math.max(14, W*0.045);
+    const marginY = Math.max(14, H*0.045);
+    const maxX = Math.max(marginX, W - boxW - marginX);
+    const maxY = Math.max(marginY, H - boxH - marginY);
+    let x, y;
+    if(mode === 'center'){
+      x = (W-boxW)/2 + randFloat(-W*0.02, W*0.02);
+      y = (H-boxH)/2 + randFloat(-H*0.02, H*0.02);
+    } else if(mode === 'corner'){
+      const corners = [
+        [marginX, marginY],
+        [maxX, marginY],
+        [marginX, maxY],
+        [maxX, maxY]
+      ];
+      [x,y] = randPick(corners);
+      x += randFloat(-6,6); y += randFloat(-6,6);
+    } else if(mode === 'top'){
+      x = randFloat(marginX, maxX);
+      y = randFloat(marginY, marginY + (maxY-marginY)*0.35);
+    } else { // natural
+      x = randFloat(marginX, maxX);
+      y = randFloat(marginY, marginY + (maxY-marginY)*0.6);
+    }
+    x = clamp(x, 0, Math.max(0, W-boxW));
+    y = clamp(y, 0, Math.max(0, H-boxH));
+    return {x,y};
+  }
+
   function randomize(){
     spinRandomizeIcons();
     pushUndo();
-    const words = [
-      "anjir cakep",
-      "yaelah",
-      "bodo amat",
-      "gak ngaruh jir",
-      "sok asik lu",
-      "bacot dikit",
-      "apaan sih",
-      "males jir",
-      "gas lah",
-      "gak usah ribet",
-      "anjay",
-      "udah diem",
-      "lu kira gua peduli?",
-      "wkwk tolol",
-      "santuy goblok",
-      "mampus dah",
-      "skip aja lah",
-      "kocak banget",
-      "gak jelas lu",
-      "yaudah terserah"
-    ];
-    const key = Object.keys(presets)[Math.floor(Math.random()*Object.keys(presets).length)];
-    Object.assign(state, presets[key]);
-    state.text = words[Math.floor(Math.random()*words.length)];
-    state.rot = Math.floor(Math.random()*13)-6;
-    state.letter = -3 + Math.floor(Math.random()*8);
-    state.align = ['left','center','right'][Math.floor(Math.random()*3)];
-    state.weight = ['tipis','normal','tebal'][Math.floor(Math.random()*3)];
-    state.bg = paletteBg[Math.floor(Math.random()*paletteBg.length)];
-    state.txt = paletteTxt[Math.floor(Math.random()*paletteTxt.length)];
-    state.boxPct = 60 + Math.floor(Math.random()*28);
-    state.xPct = 4 + Math.floor(Math.random()*18);
-    state.yPct = 10 + Math.floor(Math.random()*18);
+
+    // Bucket the word bank by length so short/medium/long styles pull
+    // text that actually suits their box — a "Tiny" style never lands a
+    // 20-character sentence, a "Chaotic" one never lands a lonely word.
+    const buckets = { short:[], medium:[], long:[] };
+    RAND_WORDS.forEach(w => {
+      if(w.length <= 9) buckets.short.push(w);
+      else if(w.length <= 15) buckets.medium.push(w);
+      else buckets.long.push(w);
+    });
+
+    const styleKey = randPick(Object.keys(RAND_STYLES));
+    const s = RAND_STYLES[styleKey];
+
+    const pool = (buckets[s.textLength] && buckets[s.textLength].length) ? buckets[s.textLength] : RAND_WORDS;
+    const text = randPick(pool);
+
+    const align = randPick(s.alignOptions);
+    const weight = randPick(s.weightOptions);
+    const fontWeight = clamp(randStep(s.fontWeightRange[0], s.fontWeightRange[1], 100), 100, 900);
+    let size = Math.round(randFloat(s.sizeRange[0], s.sizeRange[1]));
+    if(text.length > 16) size = Math.max(s.sizeRange[0], size - 18); // long text keeps a comfortable start size
+    size = clamp(size, 34, 180);
+    const rot = clamp(Math.round(randFloat(s.rotRange[0], s.rotRange[1])), -12, 12);
+    const letter = clamp(Math.round(randFloat(s.letterRange[0], s.letterRange[1])), -5, 12);
+    const gap = clamp(Math.round(randFloat(s.gapRange[0], s.gapRange[1])), -20, 80);
+
+    // Box width follows text length within the style's own comfortable
+    // range: short text gets a snugger box, long text gets a wider one —
+    // never a box that's randomly way too big or way too small for what's
+    // actually written inside it.
+    const lenFactor = clamp(text.length/22, 0, 1);
+    let boxPct = s.boxPctRange[0] + lenFactor*(s.boxPctRange[1]-s.boxPctRange[0]) + randFloat(-3,3);
+    boxPct = clamp(Math.round(boxPct), 28, 94);
+
+    const {bg, txt} = pickContrastPair(s.bgPool, s.txtPool, s.minContrast);
+
+    Object.assign(state, { text, align, weight, fontWeight, size, rot, letter, gap, boxPct, bg, txt });
+
+    // Measure the *real* fitted box (same engine the live preview uses)
+    // so placement is based on actual pixels, not a guessed percentage —
+    // this is what keeps compositions from feeling cramped or floating.
+    const {w:W, h:H} = getStageSize();
+    if(W > 0 && H > 0){
+      const layout = fitLayout(W,H);
+      const {x,y} = computeRandomPosition(s.positionMode, W, H, layout.boxW, layout.boxH);
+      state.xPct = clamp((x/W)*100, 0, 100);
+      state.yPct = clamp((y/H)*100, 0, 100);
+    } else {
+      state.xPct = clamp(8 + randFloat(-2,10), 2, 40);
+      state.yPct = clamp(16 + randFloat(-2,10), 2, 40);
+    }
+
     updatePreview();
-    toast('acak lagi ✦');
+    toast(`acak ✦ ${s.label}`);
   }
 
   function resetAll(){
