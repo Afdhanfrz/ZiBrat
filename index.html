@@ -613,6 +613,49 @@ button svg{
   min-width:0 !important;
   max-width:100% !important;
 }
+/* ZiBrat sticker layer */
+#stickerLayer{position:absolute;inset:0;pointer-events:none;z-index:14;overflow:visible}
+.z-sticker{
+  position:absolute;left:0;top:0;
+  display:grid;place-items:center;
+  width:1px;height:1px;
+  padding:0;margin:0;border:0;background:transparent;
+  font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+  line-height:1;cursor:grab;pointer-events:auto;
+  user-select:none;-webkit-user-select:none;
+  transform-origin:50% 50%;
+  touch-action:none;
+  filter:none;
+  text-shadow:none;
+}
+.z-sticker.selected{filter:drop-shadow(2px 2px 0 var(--ink));cursor:grabbing}
+.z-sticker:active{cursor:grabbing}
+.sticker-delete{
+  position:absolute;z-index:18;display:none;
+  transform:translate(-50%,-50%);
+  border:3px solid var(--ink);border-radius:11px;
+  background:#fff;color:var(--ink);
+  box-shadow:3px 3px 0 var(--ink);
+  padding:7px 9px;font:900 9px/1 var(--ui);
+  pointer-events:auto;touch-action:manipulation;
+}
+.sticker-delete.show{display:block}
+.dark .sticker-delete{background:#222;color:#fff}
+.emoji-pills{
+  display:flex;gap:8px;overflow:auto;padding:3px 1px 5px;
+  scrollbar-width:none;
+}
+.emoji-pills::-webkit-scrollbar{display:none}
+.emoji-pill{
+  flex:0 0 auto;min-width:46px;height:42px;
+  display:grid;place-items:center;
+  border:3px solid var(--ink);border-radius:999px;
+  background:#fff;box-shadow:3px 3px 0 var(--ink);
+  font:400 21px/1 "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+  cursor:pointer;transition:transform .14s ease,background .14s ease,box-shadow .14s ease;
+}
+.emoji-pill:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.dark .emoji-pill{background:#222;color:#fff}
 </style>
 
 
@@ -1607,6 +1650,114 @@ body.download-overlay-open .toast{display:none!important}
   .save-float.z-save-pop::after{opacity:1;transform:none}
 }
 </style>
+
+<style id="zibrat-v35-update">
+/* V35 — small motion/identity update. Existing accepted controls remain untouched. */
+.dock .tab svg{
+  stroke-linecap:round;stroke-linejoin:round;
+  stroke-width:2.5 !important;
+  vector-effect:non-scaling-stroke;
+}
+.dock .tab:first-child svg,.dock .tab:nth-child(2) svg{
+  transform-origin:50% 50%;
+}
+.dock .tab:active svg{transform:scale(.88) rotate(-2deg)}
+.dock .tab:nth-child(2):active svg{transform:scale(.88) rotate(2deg)}
+.dock .tab:nth-child(3):active svg{transform:scale(.86) rotate(8deg)}
+
+/* History becomes a proper 2-column visual grid. */
+.history{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px !important;
+}
+.history-item{
+  position:relative !important;
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  grid-template-rows:auto auto !important;
+  gap:8px !important;
+  min-width:0;
+  padding:8px !important;
+  border:3px solid var(--ink) !important;
+  border-radius:16px !important;
+  background:var(--paper) !important;
+  box-shadow:4px 4px 0 var(--ink) !important;
+  overflow:hidden;
+}
+.history-item img{
+  width:100% !important;
+  aspect-ratio:1/1 !important;
+  height:auto !important;
+  object-fit:cover !important;
+  display:block !important;
+  border:2px solid var(--ink) !important;
+  border-radius:10px !important;
+  background:#eee;
+}
+.history-item b{
+  display:block !important;
+  min-width:0;
+  padding:2px 3px 1px !important;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:11px !important;line-height:1.05 !important;
+}
+.history-item button[data-open]{
+  grid-row:2;
+  justify-self:stretch;
+  min-height:36px;
+  border:2px solid var(--ink);
+  border-radius:10px;
+  background:var(--green);
+  color:var(--ink);
+  font-weight:900;
+  box-shadow:2px 2px 0 var(--ink);
+}
+.history-item .fav{
+  position:absolute !important;
+  top:12px;right:12px;
+  width:34px !important;height:34px !important;
+  padding:0 !important;
+  display:grid;place-items:center;
+  border:2px solid var(--ink) !important;
+  border-radius:10px !important;
+  background:var(--paper) !important;
+  color:var(--ink) !important;
+  font-size:18px !important;
+  line-height:1;
+  box-shadow:2px 2px 0 var(--ink);
+}
+@media(max-width:380px){
+  .history{gap:9px !important}
+  .history-item{padding:6px !important;gap:6px !important;border-radius:14px !important}
+  .history-item img{border-radius:8px !important}
+  .history-item button[data-open]{min-height:33px;font-size:10px}
+  .history-item .fav{top:9px;right:9px;width:30px !important;height:30px !important;font-size:16px !important}
+}
+
+/* Background color response: smooth first, then a tiny physical pulse. */
+.preview-stage,.hero-inner{transition:background-color 280ms cubic-bezier(.22,.8,.24,1) !important}
+.preview-stage.z-bg-pulse{animation:zBgPulse 320ms cubic-bezier(.22,.8,.24,1) both}
+@keyframes zBgPulse{
+  0%{transform:scale(1)}
+  38%{transform:scale(1.012)}
+  100%{transform:scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+  .preview-stage,.hero-inner{transition:none !important}
+  .preview-stage.z-bg-pulse{animation:none !important}
+}
+</style>
+
+<style id="zibrat-justify-preview-v39">
+/* V39 — deterministic JUSTIFY preview; mirrors canvas word spacing. */
+#textDisplay .z-justify-line{
+  display:block !important;
+  width:100% !important;
+  white-space:pre !important;
+  text-align:left !important;
+}
+</style>
 </head>
 <body>
 <div id="welcomeScreen" class="welcome-screen" role="dialog" aria-modal="true" aria-label="Selamat datang di ZiBrat">
@@ -1655,6 +1806,8 @@ body.download-overlay-open .toast{display:none!important}
             </svg>
           </div>
         </div>
+        <div id="stickerLayer" aria-label="Sticker emoji"></div>
+        <button type="button" class="sticker-delete" id="stickerDelete" aria-label="Hapus sticker">HAPUS</button>
         <div class="stage-hint">
           <span class="hint-item"><svg class="hint-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18"/><path d="m9 6 3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg> geser</span>
           <span class="hint-item"><svg class="hint-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5"/><path d="M11 19H5v-6M19 13V5h-8"/></svg> resize</span>
@@ -1723,11 +1876,17 @@ body.download-overlay-open .toast{display:none!important}
       </div>
 
       <div class="control">
+        <div class="label"><span>blur</span><span class="value" id="blurVal">0px</span></div>
+        <input id="blur" class="slider" type="range" min="0" max="3" step="0.5" value="0">
+      </div>
+
+      <div class="control">
         <div class="label"><span>rata teks</span><span class="value">pilih</span></div>
         <div class="seg" id="alignSeg">
           <button class="active" data-align="left">KIRI</button>
           <button data-align="center">TENGAH</button>
           <button data-align="right">KANAN</button>
+          <button data-align="justify">JUSTIFY</button>
         </div>
       </div>
 
@@ -1793,6 +1952,10 @@ body.download-overlay-open .toast{display:none!important}
       <div class="control">
         <div class="label"><span>gaya cepat</span><span class="value">pilih</span></div>
         <div class="pills" id="presetPills"></div>
+      </div>
+      <div class="control" style="margin-top:10px">
+        <div class="label"><span>sticker emoji</span><span class="value">tap buat nambah</span></div>
+        <div class="emoji-pills" id="emojiPills"></div>
       </div>
       <div class="help" style="margin-top:10px">
         Kotak teks bisa lu geser dan lu gede-kecilin langsung di preview. Undo/redo ada di menu bawah.
@@ -1887,23 +2050,24 @@ body.download-overlay-open .toast{display:none!important}
 <nav class="dock" id="dock" aria-label="Aksi cepat ZiBrat">
   <button class="tab" data-action="undo" aria-label="Mundur" title="Mundur">
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M9 8H5v4"/>
-      <path d="M5.2 12A7.5 7.5 0 1 0 8 6.4"/>
+      <path d="M8.5 7.2H4.8v3.7"/>
+      <path d="M4.9 10.8A8 8 0 1 0 8.1 5.1"/>
+      <path d="M8.5 7.2 5.8 9.9"/>
     </svg>
     <span>UNDO</span>
   </button>
   <button class="tab" data-action="redo" aria-label="Maju lagi" title="Maju lagi">
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M15 8h4v4"/>
-      <path d="M18.8 12A7.5 7.5 0 1 1 16 6.4"/>
+      <path d="M15.5 7.2h3.7v3.7"/>
+      <path d="M19.1 10.8A8 8 0 1 1 15.9 5.1"/>
+      <path d="M15.5 7.2 18.2 9.9"/>
     </svg>
     <span>REDO</span>
   </button>
   <button class="tab" data-action="utility" aria-label="Lainnya" title="Lainnya">
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-      <circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+      <path d="M12 3.8 15.1 8.9 20.2 12l-5.1 3.1L12 20.2 8.9 15.1 3.8 12l5.1-3.1L12 3.8Z"/>
+      <path d="M12 8.1 15.9 12 12 15.9 8.1 12 12 8.1Z"/>
     </svg>
     <span>LAINNYA</span>
   </button>
@@ -1946,6 +2110,7 @@ body.download-overlay-open .toast{display:none!important}
     size: 56,
     rot: 0,
     letter: -1,
+    blur: 0,
     align: 'left',
     weight: 'normal',
     fontWeight: 700, // "Ketebalan" — was hardcoded 700 everywhere; same visual default
@@ -1959,7 +2124,8 @@ body.download-overlay-open .toast{display:none!important}
     ratioH: 1,
     wmOn: false, // watermark off by default so it never surprises existing users
     wmText: 'ZiBrat',
-    wmPos: 'br'  // tl,tc,tr,ml,mm,mr,bl,bc,br
+    wmPos: 'br',  // tl,tc,tr,ml,mm,mr,bl,bc,br
+    stickers: []
   };
 
   const presets = {
@@ -1993,29 +2159,43 @@ body.download-overlay-open .toast{display:none!important}
   const textBox = $('textBox');
   const textDisplay = $('textDisplay');
 
+  function normalizeStickers(list){
+    if(!Array.isArray(list)) return [];
+    return list.map((st,i)=>({
+      id: st && st.id != null ? String(st.id) : `sticker-${Date.now()}-${i}`,
+      emoji: String(st && st.emoji || '✨'),
+      xPct: clamp(+st.xPct || 50, 0, 100),
+      yPct: clamp(+st.yPct || 50, 0, 100),
+      size: clamp(+st.size || 40, 18, 180),
+      rot: clamp(+st.rot || 0, -180, 180)
+    }));
+  }
   function loadState(){
     try{
-      return Object.assign({}, defaults, JSON.parse(localStorage.getItem('brat_state_v12') || '{}'));
+      const saved = JSON.parse(localStorage.getItem('brat_state_v12') || '{}');
+      return Object.assign({}, defaults, saved, { stickers: normalizeStickers(saved.stickers) });
     }catch{
-      return {...defaults};
+      return {...defaults, stickers:[]};
     }
   }
   function saveState(){
     localStorage.setItem('brat_state_v12', JSON.stringify({
-      text: state.text, size: state.size, rot: state.rot, letter: state.letter, align: state.align,
+      text: state.text, size: state.size, rot: state.rot, letter: state.letter, blur: +state.blur || 0, align: state.align,
       weight: state.weight, fontWeight: state.fontWeight, gap: state.gap, bg: state.bg, txt: state.txt,
       boxPct: state.boxPct, xPct: state.xPct, yPct: state.yPct,
       ratioW: state.ratioW, ratioH: state.ratioH,
-      wmOn: state.wmOn, wmText: state.wmText, wmPos: state.wmPos
+      wmOn: state.wmOn, wmText: state.wmText, wmPos: state.wmPos,
+      stickers: normalizeStickers(state.stickers)
     }));
   }
   function snapshot(){
     return JSON.stringify({
-      text: state.text, size: state.size, rot: state.rot, letter: state.letter, align: state.align,
+      text: state.text, size: state.size, rot: state.rot, letter: state.letter, blur: +state.blur || 0, align: state.align,
       weight: state.weight, fontWeight: state.fontWeight, gap: state.gap, bg: state.bg, txt: state.txt,
       boxPct: state.boxPct, xPct: state.xPct, yPct: state.yPct,
       ratioW: state.ratioW, ratioH: state.ratioH,
-      wmOn: state.wmOn, wmText: state.wmText, wmPos: state.wmPos
+      wmOn: state.wmOn, wmText: state.wmText, wmPos: state.wmPos,
+      stickers: normalizeStickers(state.stickers)
     });
   }
   function pushUndo(){
@@ -2320,6 +2500,142 @@ body.download-overlay-open .toast{display:none!important}
     return {W,H,boxW,boxH,x,y,size,lines,lineH,padX,padY};
   }
 
+  const EMOJIS = ['🔥','✨','💀','😭','🙏','💯','⭐','🎉','😤','⚡'];
+  let selectedStickerId = null;
+  let stickerGesture = null;
+
+  function stickerById(id){ return (state.stickers || []).find(s => String(s.id) === String(id)); }
+  function stickerClientPosition(st){
+    const r = stage.getBoundingClientRect();
+    return {x:r.width * (+st.xPct/100), y:r.height * (+st.yPct/100), w:r.width, h:r.height};
+  }
+  function renderEmojiPills(){
+    const box = $('emojiPills');
+    if(!box) return;
+    box.innerHTML = EMOJIS.map((emoji,i)=>`<button type="button" class="emoji-pill" data-emoji-index="${i}" aria-label="Tambah ${emoji}">${emoji}</button>`).join('');
+    box.querySelectorAll('.emoji-pill').forEach(btn=>btn.onclick=()=>addSticker(EMOJIS[+btn.dataset.emojiIndex]));
+  }
+  function renderStickers(){
+    const layer = $('stickerLayer');
+    if(!layer) return;
+    const live = new Map([...layer.querySelectorAll('.z-sticker')].map(el=>[String(el.dataset.id),el]));
+    const keep = new Set();
+    (state.stickers || []).forEach(st=>{
+      const id=String(st.id); keep.add(id);
+      let el=live.get(id);
+      if(!el){
+        el=document.createElement('button');
+        el.type='button'; el.className='z-sticker'; el.dataset.id=id;
+        el.textContent=st.emoji;
+        el.addEventListener('pointerdown', onStickerPointerDown, {passive:false});
+        el.addEventListener('pointermove', onStickerPointerMove, {passive:false});
+        el.addEventListener('pointerup', onStickerPointerUp, {passive:false});
+        el.addEventListener('pointercancel', onStickerPointerUp, {passive:false});
+        el.addEventListener('click', e=>{
+          e.stopPropagation();
+          selectedStickerId=id;
+          renderStickers();
+        });
+        layer.appendChild(el);
+      }
+      el.textContent=st.emoji;
+      el.style.left=`${st.xPct}%`;
+      el.style.top=`${st.yPct}%`;
+      el.style.fontSize=`${st.size}px`;
+      el.style.transform=`translate(-50%,-50%) rotate(${st.rot}deg)`;
+      el.classList.toggle('selected', String(selectedStickerId)===id);
+    });
+    live.forEach((el,id)=>{ if(!keep.has(id)) el.remove(); });
+    const del=$('stickerDelete');
+    const sel=selectedStickerId!=null ? stickerById(selectedStickerId) : null;
+    if(del && sel){
+      del.classList.add('show');
+      del.style.left=`${sel.xPct}%`;
+      del.style.top=`${clamp(sel.yPct - Math.max(7, sel.size/Math.max(1,stage.clientHeight)*100), 5, 92)}%`;
+    }else if(del){ del.classList.remove('show'); }
+  }
+  function addSticker(emoji){
+    pushUndo();
+    const st={id:`sticker-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,emoji,xPct:50,yPct:50,size:40,rot:0};
+    state.stickers = [...(state.stickers || []), st];
+    selectedStickerId=st.id;
+    updatePreview();
+    toast(`${emoji} ditambah`);
+  }
+  function deleteSticker(id=selectedStickerId){
+    const idx=(state.stickers||[]).findIndex(s=>String(s.id)===String(id));
+    if(idx<0) return;
+    pushUndo();
+    const removed=state.stickers[idx];
+    state.stickers.splice(idx,1);
+    selectedStickerId=null;
+    updatePreview();
+    toast(`${removed.emoji} dihapus`);
+  }
+  function onStickerPointerDown(e){
+    const id=e.currentTarget.dataset.id;
+    const st=stickerById(id);
+    if(!st) return;
+    selectedStickerId=id;
+    const r=stage.getBoundingClientRect();
+    stickerGesture={id,before:snapshot(),startX:e.clientX,startY:e.clientY,startXPct:st.xPct,startYPct:st.yPct,moved:false};
+    try{e.currentTarget.setPointerCapture(e.pointerId)}catch{}
+    renderStickers();
+    e.preventDefault(); e.stopPropagation();
+  }
+  function onStickerPointerMove(e){
+    if(!stickerGesture || !stickerGesture.id) return;
+    const st=stickerById(stickerGesture.id);
+    if(!st) return;
+    const r=stage.getBoundingClientRect();
+    const dx=(e.clientX-stickerGesture.startX)/Math.max(1,r.width)*100;
+    const dy=(e.clientY-stickerGesture.startY)/Math.max(1,r.height)*100;
+    if(Math.abs(dx)+Math.abs(dy)>0.5) stickerGesture.moved=true;
+    st.xPct=stickerGesture.startXPct+dx;
+    st.yPct=stickerGesture.startYPct+dy;
+    updatePreview();
+    e.preventDefault();
+  }
+  function onStickerPointerUp(e){
+    if(!stickerGesture) return;
+    const g=stickerGesture;
+    const st=stickerById(g.id);
+    stickerGesture=null;
+    if(st && g.moved){
+      const r=stage.getBoundingClientRect();
+      const outside=e.clientX<r.left || e.clientX>r.right || e.clientY<r.top || e.clientY>r.bottom;
+      if(outside){
+        state.stickers=state.stickers.filter(x=>String(x.id)!==String(g.id));
+        selectedStickerId=null;
+        undoStack.push(g.before); if(undoStack.length>30) undoStack.shift(); redoStack=[];
+        updatePreview();
+        toast(`${st.emoji} dibuang`);
+        return;
+      }
+      undoStack.push(g.before); if(undoStack.length>30) undoStack.shift(); redoStack=[];
+      saveState();
+      toast('Sticker dipindah');
+    }
+    try{e.currentTarget.releasePointerCapture(e.pointerId)}catch{}
+    renderStickers();
+  }
+  function drawStickersExport(W,H,sx,sy){
+    ctx.save();
+    ctx.scale(sx,sy);
+    ctx.font='40px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#000';
+    (state.stickers || []).forEach(st=>{
+      const x=W*(+st.xPct/100), y=H*(+st.yPct/100);
+      ctx.save();
+      ctx.translate(x,y);
+      ctx.rotate((+st.rot||0)*Math.PI/180);
+      ctx.font=`${Math.max(18,+st.size||40)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+      ctx.fillText(st.emoji,0,0);
+      ctx.restore();
+    });
+    ctx.restore();
+  }
+
   function updatePreview(){
     // Keep the stage's on-screen shape and the export canvas's pixel shape
     // locked to the exact same ratio before anything else measures them.
@@ -2328,14 +2644,23 @@ body.download-overlay-open .toast{display:none!important}
     const {w:W,h:H} = getStageSize();
     const layout = fitLayout(W,H);
 
+    const bgChanged = stage.dataset.lastBg !== state.bg;
     heroInner.style.background = state.bg;
     stage.style.background = state.bg;
+    if(bgChanged){
+      stage.classList.remove('z-bg-pulse');
+      void stage.offsetWidth;
+      stage.classList.add('z-bg-pulse');
+      setTimeout(()=>stage.classList.remove('z-bg-pulse'),340);
+      stage.dataset.lastBg = state.bg;
+    }
     updateBadge($('bgVal'), state.bg.toUpperCase());
     updateBadge($('textColorVal'), state.txt.toUpperCase());
     updateBadge($('charCount'), `${state.text.length} huruf`);
     updateBadge($('sizeVal'), String(state.size));
     updateBadge($('rotVal'), `${state.rot}°`);
     updateBadge($('letterVal'), String(state.letter));
+    updateBadge($('blurVal'), `${(+state.blur || 0).toFixed((+state.blur || 0)%1 ? 1 : 0)}px`);
     updateBadge($('weightVal'), state.weight);
     updateBadge($('thickVal'), String(state.fontWeight));
     updateBadge($('gapVal'), String(state.gap));
@@ -2345,12 +2670,27 @@ body.download-overlay-open .toast{display:none!important}
     $('size').value = state.size;
     $('rot').value = state.rot;
     $('letter').value = state.letter;
+    $('blur').value = +state.blur || 0;
     $('thickness').value = state.fontWeight;
     $('gap').value = state.gap;
     // Preview memakai pemenggalan baris yang SAMA persis dengan export canvas.
     // Jadi kalau preview 2 baris, PNG juga 2 baris.
     const textChanged = textDisplay.dataset.lastText !== state.text;
-    textDisplay.innerHTML = layout.lines.map(line => escapeHtml(line)).join('<br>');
+    // JUSTIFY: the preview previously relied only on native text-align:justify
+    // while each wrapped line was injected with <br>. That makes justify look
+    // inactive in many cases (especially when the browser treats the final
+    // line as an un-justified line). Render each wrapped line as its own block
+    // and apply the exact extra word spacing used by canvas export.
+    if(state.align === 'justify'){
+      const targetW = Math.max(1, layout.boxW - layout.padX * 2);
+      textDisplay.innerHTML = layout.lines.map(line => {
+        const extra = getJustifySpacing(line, targetW, +state.letter, layout.size);
+        const safe = escapeHtml(line);
+        return `<span class=\"z-justify-line\" style=\"word-spacing:${extra}px\">${safe}</span>`;
+      }).join('');
+    }else{
+      textDisplay.innerHTML = layout.lines.map(line => escapeHtml(line)).join('<br>');
+    }
     textDisplay.dataset.lastText = state.text;
     textDisplay.style.color = state.txt;
     textDisplay.style.fontFamily = getFontFamily();
@@ -2358,6 +2698,7 @@ body.download-overlay-open .toast{display:none!important}
     textDisplay.style.fontWeight = String(state.fontWeight);
     textDisplay.style.letterSpacing = `${state.letter}px`;
     textDisplay.style.fontSize = `${layout.size}px`;
+    textDisplay.style.filter = `blur(${+state.blur || 0}px)`;
     // Exact px line-height (not the old unitless 0.84) so "Jarak" can move the
     // bottom line while the top line — anchored by the box's own top edge —
     // stays put. !important needed to beat the pre-existing stylesheet rule.
@@ -2391,6 +2732,7 @@ body.download-overlay-open .toast{display:none!important}
     renderRatioUI();
     renderWatermarkUI();
     renderWatermarkOverlay();
+    renderStickers();
     syncSegThumbs();
     syncGridThumb();
     saveState();
@@ -2575,7 +2917,7 @@ body.download-overlay-open .toast{display:none!important}
   // dan dengan CSS letter-spacing yang dipakai preview. ctx.fillText satu baris
   // penuh tidak menerapkan letter-spacing di canvas, makanya sebelumnya PNG
   // selalu lebih rapat dari preview.
-  function drawLetterSpacedText(text, x, y, letterSpacing, strokeW){
+  function drawLetterSpacedText(text, x, y, letterSpacing, strokeW, extraWordSpacing=0){
     let cx = x;
     for(const ch of text){
       if(strokeW > 0){
@@ -2583,8 +2925,15 @@ body.download-overlay-open .toast{display:none!important}
         ctx.strokeText(ch, cx, y);
       }
       ctx.fillText(ch, cx, y);
-      cx += ctx.measureText(ch).width + letterSpacing;
+      cx += ctx.measureText(ch).width + letterSpacing + (ch === ' ' ? extraWordSpacing : 0);
     }
+  }
+
+  function getJustifySpacing(line, targetWidth, letterSpacing, size){
+    const words = String(line).trim().split(/\s+/).filter(Boolean);
+    if(words.length < 2) return 0;
+    const natural = measureLine(line, size, letterSpacing);
+    return Math.max(0, (targetWidth - natural) / (words.length - 1));
   }
 
   function drawExport(){
@@ -2618,6 +2967,18 @@ body.download-overlay-open .toast{display:none!important}
     ctx.fillStyle = state.txt;
     ctx.strokeStyle = state.txt;
     ctx.lineJoin = 'round';
+    // IMPORTANT: canvas 2D `filter` blur radii are always specified in raw
+    // device/canvas pixels — ctx.scale() does NOT affect them (unlike normal
+    // fill/stroke geometry, which the scale() above already stretches to fit
+    // the PNG). Since blur is authored against the on-screen preview (which
+    // renders at ~previewW/H px via CSS filter), we must scale the radius by
+    // the same sx/sy factor used for geometry, or the exported blur ends up
+    // far weaker than what's shown in the preview. Verified empirically:
+    // blur(Npx) inside ctx.scale(k,k) looks identical to blur(Npx) with no
+    // scale at all — it does NOT become blur(N*k)px automatically.
+    const blurPx = Math.max(0, +state.blur || 0);
+    const blurScale = (sx + sy) / 2;
+    ctx.filter = blurPx > 0 ? `blur(${blurPx * blurScale}px)` : 'none';
 
     const strokeW = getTextStrokeWeight();
     const totalH = layout.lines.length * layout.lineH;
@@ -2628,12 +2989,21 @@ body.download-overlay-open .toast{display:none!important}
       let x = layout.x + layout.padX;
       if(state.align === 'center') x = layout.x + (layout.boxW - lineWidth) / 2;
       if(state.align === 'right') x = layout.x + layout.boxW - layout.padX - lineWidth;
+      if(state.align === 'justify') x = layout.x + layout.padX;
 
       const y = startY + idx * layout.lineH;
-      drawLetterSpacedText(line, x, y, +state.letter, strokeW);
+      const extraWordSpacing = state.align === 'justify'
+        ? getJustifySpacing(line, layout.boxW - layout.padX*2, +state.letter, layout.size)
+        : 0;
+      drawLetterSpacedText(line, x, y, +state.letter, strokeW, extraWordSpacing);
     });
 
+    ctx.filter = 'none';
     ctx.restore();
+
+    // Stickers are independent stage layers: they are exported after the text
+    // transform is restored so their live position/rotation remains exact.
+    drawStickersExport(previewW, previewH, sx, sy);
 
     // Watermark — painted in the SAME preview-pixel coordinate space
     // (previewW/previewH) as everything above, then scaled by the same
@@ -5334,7 +5704,7 @@ body.download-overlay-open .toast{display:none!important}
 
   function resetAll(){
     pushUndo();
-    Object.assign(state, defaults);
+    Object.assign(state, {...defaults, stickers: []});
     updatePreview();
     toast('Diatur ulang');
   }
@@ -5396,6 +5766,15 @@ body.download-overlay-open .toast{display:none!important}
   $('alignSeg').querySelectorAll('button').forEach(btn => btn.onclick = () => { pushUndo(); state.align = btn.dataset.align; updatePreview(); });
   $('weightSeg').querySelectorAll('button').forEach(btn => btn.onclick = () => { pushUndo(); state.weight = btn.dataset.weight; updatePreview(); });
 
+  bindLiveControl($('blur'), e => { state.blur = clamp(+e.target.value || 0, 0, 3); }, ['change']);
+  renderEmojiPills();
+  $('stickerDelete').onclick = e => { e.preventDefault(); e.stopPropagation(); deleteSticker(); };
+  stage.addEventListener('pointermove', e => { if(stickerGesture) onStickerPointerMove(e); }, {passive:false});
+  stage.addEventListener('pointerup', e => { if(stickerGesture) onStickerPointerUp(e); }, {passive:false});
+  stage.addEventListener('pointercancel', e => { if(stickerGesture) onStickerPointerUp(e); }, {passive:false});
+  stage.addEventListener('click', e => {
+    if(e.target === stage || e.target.classList.contains('stage-hint')){ selectedStickerId=null; renderStickers(); }
+  });
   $('btnCopy').onclick = copyImage;
   $('btnShare').onclick = shareImage;
   $('btnSaveFloat').onclick = savePNG;
@@ -5633,6 +6012,7 @@ body.download-overlay-open .toast{display:none!important}
       if(e.key.toLowerCase() === 's'){ e.preventDefault(); savePNG(); }
       if(e.key.toLowerCase() === 'z' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); undo(); }
       if(e.key.toLowerCase() === 'y' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); redo(); }
+      if((e.key === 'Delete' || e.key === 'Backspace') && selectedStickerId != null){ e.preventDefault(); deleteSticker(); }
     });
 
   }
@@ -5752,4 +6132,23 @@ body.download-overlay-open .toast{display:none!important}
 </body>
 <!-- v9: direct preview manipulation; export/render code intentionally unchanged -->
 <!-- v10: fixed updatePreview references; one direct manipulation system; export untouched -->
+<!-- v39: deterministic justify preview fix -->
 </html>
+
+<style id="zibrat-handle-layer-fix-v37">
+/* V37 — handle must stay visually ABOVE the text content.
+   The DOM order puts .content after .drag-handle, so without an explicit
+   stacking order the text can paint over the drag control. */
+#textBox .content{
+  position:relative !important;
+  z-index:1 !important;
+}
+#textBox .drag-handle{
+  position:absolute !important;
+  z-index:20 !important;
+}
+#textBox .resize-handle{
+  position:absolute !important;
+  z-index:21 !important;
+}
+</style>
