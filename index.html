@@ -1839,7 +1839,7 @@ input[type=range].slider{
      BENTROK sama parent .control yang di-set 'pan-y' di bawah — dua arah
      yang beda bikin browser malah mematikan gesture-nya sama sekali di
      sebagian WebView (termasuk XOS). Ini akar dari bug "tidak bisa digeser". */
-  touch-action:none;
+  touch-action:pan-y;
   -webkit-user-select:none;user-select:none;
   -webkit-touch-callout:none;
   -webkit-user-drag:none;
@@ -1900,7 +1900,7 @@ input[type=range].slider::-moz-range-thumb{
    V47: samakan dengan child ('none'), jangan 'pan-y' — nilai yang beda
    dengan input di dalamnya saling meniadakan (lihat catatan di atas). */
 .control:has(.slider){
-  touch-action:none;
+  touch-action:pan-y;
   pointer-events:auto;
 }
 
@@ -1942,6 +1942,11 @@ button,
     if(el.dataset.zPointerWired) return;
     el.dataset.zPointerWired = '1';
     var dragging = false;
+    var tracking = false;
+    var pointerId = null;
+    var startX = 0;
+    var startY = 0;
+    var INTENT_THRESHOLD = 8;
 
     function valueFromClientX(clientX){
       var rect = el.getBoundingClientRect();
@@ -1967,24 +1972,56 @@ button,
     }
 
     el.addEventListener('pointerdown', function(e){
-      dragging = true;
-      try{ el.setPointerCapture(e.pointerId); }catch(err){}
-      el.classList.add('z-slider-dragging');
-      setFromClientX(e.clientX);
-      e.preventDefault();
-    }, {passive:false});
+      tracking = true;
+      dragging = false;
+      pointerId = e.pointerId;
+      startX = e.clientX;
+      startY = e.clientY;
+      // Jangan preventDefault saat awal sentuhan. Android harus bebas
+      // menentukan bahwa ini gesture scroll vertikal.
+    }, {passive:true});
 
     el.addEventListener('pointermove', function(e){
-      if(!dragging) return;
+      if(!tracking || e.pointerId !== pointerId) return;
+
+      var dx = e.clientX - startX;
+      var dy = e.clientY - startY;
+
+      if(!dragging){
+        // Gesture vertikal: lepaskan sepenuhnya ke page scroll.
+        if(Math.abs(dy) >= INTENT_THRESHOLD && Math.abs(dy) > Math.abs(dx)){
+          tracking = false;
+          pointerId = null;
+          return;
+        }
+
+        // Gesture horizontal: slider mengambil alih.
+        if(Math.abs(dx) >= INTENT_THRESHOLD && Math.abs(dx) > Math.abs(dy)){
+          dragging = true;
+          try{ el.setPointerCapture(e.pointerId); }catch(err){}
+          el.classList.add('z-slider-dragging');
+          setFromClientX(e.clientX);
+          e.preventDefault();
+          return;
+        }
+        return;
+      }
+
       setFromClientX(e.clientX);
       e.preventDefault();
     }, {passive:false});
 
     function finish(e){
-      if(!dragging) return;
-      dragging = false;
-      el.classList.remove('z-slider-dragging');
-      el.dispatchEvent(new Event('change', {bubbles:true}));
+      if(e.pointerId !== pointerId) return;
+
+      if(dragging){
+        dragging = false;
+        el.classList.remove('z-slider-dragging');
+        el.dispatchEvent(new Event('change', {bubbles:true}));
+      }
+
+      tracking = false;
+      pointerId = null;
     }
     el.addEventListener('pointerup', finish);
     el.addEventListener('pointercancel', finish);
@@ -2004,6 +2041,33 @@ button,
   else{ document.addEventListener('DOMContentLoaded', start); }
 })();
 </script>
+
+<style id="zibrat-section-pointer-fix-v49">
+/*
+  Sections that are still waiting for their reveal animation must not receive
+  touch/pointer events. Their 3D transform creates a stacking context and,
+  on some Android WebViews, that transformed area can overlap the next card.
+  Once revealed, everything works normally again.
+*/
+.section:not(.z-inview){
+  pointer-events:none !important;
+}
+.section.z-inview{
+  pointer-events:auto !important;
+}
+</style>
+
+<style id="zibrat-scroll-overlap-final-v49">
+/* Hidden reveal cards can never steal touches from the visible card below. */
+.section:not(.z-inview){pointer-events:none !important;}
+.section.z-inview{pointer-events:auto !important;}
+
+/* Vertical swipe scrolls the page; horizontal swipe is handled by JS. */
+input[type="range"].slider,
+.control:has(input[type="range"].slider){
+  touch-action:pan-y !important;
+}
+</style>
 </head>
 <body>
 <div id="welcomeScreen" class="welcome-screen" role="dialog" aria-modal="true" aria-label="Selamat datang di ZiBrat">
