@@ -1147,16 +1147,18 @@ body:has(.sheet.open) .save-float{display:none !important}
 .dock .tab:active{transform:translateY(1px) scale(.97) !important}
 
 .save-float{
-  right:max(16px, calc((100vw - 470px)/2 + 4px)) !important;
-  bottom:max(76px, calc(env(safe-area-inset-bottom) + 70px)) !important;
-  width:58px !important; height:58px !important;
-  border:3px solid var(--ink) !important; border-radius:18px !important;
+  right:max(14px, calc((100vw - 470px)/2 + 2px)) !important;
+  bottom:max(88px, calc(env(safe-area-inset-bottom) + 82px)) !important;
+  width:64px !important; height:64px !important;
+  border:3px solid var(--ink) !important; border-radius:16px !important;
   background:var(--green) !important; color:var(--ink) !important;
-  box-shadow:4px 4px 0 var(--ink), 0 8px 22px rgba(0,0,0,.13) !important;
+  box-shadow:4px 4px 0 var(--ink) !important;
+  transform:rotate(-3deg) !important;
   transition:transform .14s ease, box-shadow .14s ease, filter .14s ease !important;
+  display:grid !important; place-items:center !important;
 }
-.save-float svg{width:25px !important;height:25px !important;stroke-width:2.8 !important}
-.save-float:active{transform:translate(2px,2px) scale(.98) !important;box-shadow:2px 2px 0 var(--ink), 0 5px 14px rgba(0,0,0,.10) !important}
+.save-float svg{width:26px !important;height:26px !important;stroke-width:2.9 !important}
+.save-float:active{transform:translate(2px,2px) rotate(0deg) scale(.97) !important;box-shadow:2px 2px 0 var(--ink) !important}
 
 .app{padding-bottom:84px !important}
 .toast{bottom:78px !important}
@@ -1170,9 +1172,9 @@ body:has(.sheet.open) .save-float{display:none !important}
   .dock{width:calc(100vw - 14px) !important;height:52px !important;bottom:max(7px,calc(env(safe-area-inset-bottom) + 3px)) !important;border-radius:18px !important}
   .dock .tab{height:44px !important;font-size:8px !important;gap:4px !important}
   .dock .tab svg{width:18px !important;height:18px !important}
-  .save-float{width:56px !important;height:56px !important;right:14px !important;bottom:max(72px,calc(env(safe-area-inset-bottom) + 64px)) !important;border-radius:17px !important}
+  .save-float{width:56px !important;height:56px !important;right:12px !important;bottom:max(88px,calc(env(safe-area-inset-bottom) + 82px)) !important;border-radius:14px !important}
   .save-float svg{width:24px !important;height:24px !important}
-  .app{padding-bottom:78px !important}
+  .app{padding-bottom:82px !important}
 }
 </style>
 
@@ -1396,208 +1398,182 @@ body.dark .welcome-screen{background:var(--paper)}
 }
 </style>
 
-<style id="zibrat-download-overlay-v3">
-/* ===== ZiBrat download celebration v3 =====
-   Brutalist + premium: cream canvas, hard shadows, green offsets, controlled motion.
+<style id="zibrat-download-overlay-v4">
+/* ===== ZiBrat Download Overlay v4 — Clean & Focused =====
+   Redesigned: preview jadi hero, hilang clutter, dark overlay,
+   metadata file, typography bersih, animasi subtle.
 */
 .download-overlay{
   position:fixed;inset:0;z-index:20000;display:none;align-items:center;justify-content:center;
-  padding:24px 12px calc(24px + env(safe-area-inset-bottom));
+  padding:20px 16px calc(20px + env(safe-area-inset-bottom));
   overflow:hidden;isolation:isolate;
 }
-.download-overlay.open{display:flex;animation:zDOverlayIn 360ms cubic-bezier(.2,.85,.2,1) both}
+.download-overlay.open{display:flex;animation:zDOverlayIn 280ms ease both}
 
 .download-overlay__backdrop{
   position:absolute;inset:0;
-  background:
-    radial-gradient(circle at 50% 40%,rgba(138,206,0,.16),transparent 34%),
-    repeating-linear-gradient(-8deg,rgba(5,5,5,.035) 0 2px,transparent 2px 14px),
-    rgba(244,244,238,.88);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  opacity:0;animation:zDBackdropIn 360ms ease-out forwards;
+  background:rgba(10,10,10,.55);
+  backdrop-filter:blur(24px) saturate(1.1);
+  -webkit-backdrop-filter:blur(24px) saturate(1.1);
+  opacity:0;animation:zDBackdropIn 320ms ease-out forwards;
 }
-.download-overlay::before{
-  content:"✓";
-  position:absolute;left:-34px;bottom:4%;
-  color:rgba(138,206,0,.12);
-  font-size:clamp(220px,65vw,430px);font-weight:900;
-  line-height:.7;transform:rotate(-12deg);
-  pointer-events:none;
-}
-.download-overlay::after{
-  content:"PNG / KE SAVE";
-  position:absolute;right:14px;top:16px;
-  padding:7px 10px 6px;
-  border:3px solid var(--ink);border-radius:9px;
-  background:#fff;color:var(--ink);
-  box-shadow:4px 4px 0 var(--green);
-  font-size:10px;font-weight:900;letter-spacing:.5px;
-  transform:rotate(3deg) translateY(-10px) scale(.85);
-  opacity:0;
-}
-.download-overlay.open::after{animation:zDTagIn 420ms cubic-bezier(.2,.9,.2,1) 300ms both}
 
+/* Card utama */
 .download-modal{
-  position:relative;z-index:1;width:min(430px,calc(100vw - 20px));
-  display:flex;flex-direction:column;align-items:center;
-  gap:12px;text-align:center;transform-origin:50% 45%;
+  position:relative;z-index:1;
+  width:min(340px,calc(100vw - 32px));
+  background:#fafaf5;
+  border:3px solid var(--ink);
+  border-radius:24px;
+  overflow:hidden;
+  box-shadow:10px 10px 0 rgba(0,0,0,.9), 0 20px 50px rgba(0,0,0,.25);
+  display:flex;
+  flex-direction:column;
+  transform:translateY(24px) scale(.96);
+  opacity:0;
 }
-.download-modal::before,
-.download-modal::after{
-  content:"";position:absolute;z-index:-1;width:38px;height:38px;
-  border:4px solid var(--ink);opacity:0;
+.download-overlay.open .download-modal{
+  animation:zDCardIn 420ms cubic-bezier(.16,1,.3,1) 60ms both;
 }
-.download-modal::before{
-  left:-2px;top:43%;border-right:0;border-bottom:0;
-  transform:translate(-22px,8px) rotate(-8deg);
-}
-.download-modal::after{
-  right:-2px;top:53%;border-left:0;border-top:0;
-  transform:translate(22px,-8px) rotate(-8deg);
-}
-.download-overlay.open .download-modal::before{animation:zDMarkIn 360ms ease-out 210ms both}
-.download-overlay.open .download-modal::after{animation:zDMarkIn 360ms ease-out 250ms both}
 
-.download-title{
-  position:relative;z-index:4;
-  align-self:center;margin-bottom:-2px;
-  padding:7px 12px 6px;
-  color:var(--ink);
-  font-size:clamp(30px,8.8vw,48px);line-height:.88;
-  font-weight:900;letter-spacing:-2.7px;text-transform:uppercase;
+/* Preview area — full bleed atas */
+.download-preview-area{
+  width:100%;
+  aspect-ratio:1/1;
+  background:linear-gradient(135deg,var(--green) 0%,var(--green2) 100%);
+  border-bottom:3px solid var(--ink);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  position:relative;
+}
+.download-preview-img{
+  width:100%;height:100%;
+  border:3px solid var(--ink);
+  border-radius:16px;
   background:#fff;
-  border:4px solid var(--ink);border-radius:10px;
-  box-shadow:7px 7px 0 var(--green);
-  opacity:0;
-  transform:translateY(-18px) scale(.78) rotate(-2deg);
-}
-.download-title::before{
-  content:"";
-  position:absolute;left:10px;right:10px;bottom:5px;height:6px;
-  background:var(--green);z-index:-1;transform:skewX(-18deg);
-}
-.download-overlay.open .download-title{
-  animation:zDTitleIn 520ms cubic-bezier(.18,.9,.2,1) 120ms both;
+  box-shadow:5px 5px 0 rgba(0,0,0,.85);
+  object-fit:cover;
+  display:block;
 }
 
-.download-preview-wrap{
-  position:relative;width:min(380px,88vw);padding:7px;
-  transform:translateY(38px) scale(.76) rotate(1.5deg);
-  opacity:0;
-}
-.download-overlay.open .download-preview-wrap{
-  animation:zDPreviewIn 620ms cubic-bezier(.16,.9,.2,1) 30ms both;
-}
-.download-preview-wrap::before{
-  content:"HASIL BARU";
-  position:absolute;z-index:5;left:-11px;top:-11px;
-  padding:6px 9px 5px;
-  border:3px solid var(--ink);border-radius:8px;
-  background:var(--green);color:var(--ink);
-  box-shadow:4px 4px 0 var(--ink);
-  font-size:10px;font-weight:900;letter-spacing:.4px;
-  transform:rotate(-5deg) scale(.72);opacity:0;
-}
-.download-overlay.open .download-preview-wrap::before{
-  animation:zDStickerIn 400ms cubic-bezier(.2,.9,.2,1) 330ms both;
-}
-.download-preview-wrap::after{
-  content:"";
-  position:absolute;right:-9px;bottom:14px;z-index:5;
-  width:18px;height:18px;border:3px solid var(--ink);border-radius:50%;
-  background:#fff;box-shadow:3px 3px 0 var(--ink);
-  transform:scale(.2) rotate(-30deg);opacity:0;
-}
-.download-overlay.open .download-preview-wrap::after{
-  animation:zDDotIn 380ms cubic-bezier(.2,.9,.2,1) 400ms both;
-}
-.download-preview-shadow{
-  position:absolute;inset:13px -1px 1px 13px;
-  border:4px solid var(--ink);border-radius:25px;
-  background:var(--green);box-shadow:0 18px 34px rgba(5,5,5,.16);
-  transform:rotate(1.8deg);
-}
-.download-preview{
-  position:relative;display:block;width:100%;height:auto;max-height:58vh;
-  object-fit:contain;border:4px solid var(--ink);border-radius:22px;background:#fff;
-  box-shadow:7px 7px 0 var(--ink);transform:translateZ(0);
+/* Body card */
+.download-body{
+  padding:22px 20px 20px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
 }
 
-.download-ok{
-  position:relative;z-index:3;min-width:184px;
-  border:4px solid var(--ink);border-radius:17px;
-  padding:13px 24px 12px;background:var(--green);color:var(--ink);
-  box-shadow:5px 5px 0 var(--ink);
-  font-size:14px;font-weight:900;letter-spacing:.15px;cursor:pointer;
-  opacity:0;transform:translateY(18px) scale(.90);
-}
-.download-overlay.open .download-ok{
-  animation:zDButtonIn 440ms cubic-bezier(.18,.9,.2,1) 450ms both;
-}
-.download-ok::before{
-  content:"✓";
-  position:absolute;left:-13px;top:-12px;width:24px;height:24px;
-  display:grid;place-items:center;border:3px solid var(--ink);border-radius:50%;
-  background:#fff;color:var(--ink);font-size:13px;font-weight:900;
+/* Badge check */
+.download-badge{
+  width:44px;height:44px;
+  background:var(--green);
+  border:3px solid var(--ink);
+  border-radius:50%;
+  display:grid;place-items:center;
   box-shadow:3px 3px 0 var(--ink);
-  opacity:0;transform:scale(.3) rotate(-20deg);
+  font-size:20px;
+  line-height:1;
+  flex:none;
+  animation:zBadgePop 360ms cubic-bezier(.22,.8,.24,1) 280ms both;
 }
-.download-overlay.open .download-ok::before{
-  animation:zDDotIn 360ms cubic-bezier(.2,.9,.2,1) 650ms both;
+
+/* Title */
+.download-title{
+  font-size:clamp(20px,6vw,26px);
+  font-weight:900;
+  letter-spacing:-0.8px;
+  line-height:1.05;
+  color:var(--ink);
+  text-align:center;
+  margin:0;
 }
+.download-title-accent{
+  display:inline-block;
+  background:var(--green);
+  padding:2px 7px;
+  border-radius:8px;
+  border:2.5px solid var(--ink);
+  box-shadow:2px 2px 0 var(--ink);
+  margin-left:2px;
+}
+
+/* File metadata */
+.download-meta{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.download-meta-tag{
+  font-size:10px;
+  font-weight:800;
+  color:#555;
+  background:#f0f0e8;
+  padding:5px 10px;
+  border-radius:999px;
+  border:1.5px solid #ccc;
+  letter-spacing:0.2px;
+}
+
+/* OK Button */
+.download-ok{
+  width:100%;
+  border:3px solid var(--ink);
+  border-radius:14px;
+  padding:14px;
+  background:var(--green);
+  color:var(--ink);
+  box-shadow:4px 4px 0 var(--ink);
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:0.3px;
+  text-align:center;
+  cursor:pointer;
+  margin-top:4px;
+  transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+.download-ok:hover{filter:brightness(1.03)}
 .download-ok:active{
-  transform:translate(3px,3px) scale(.98)!important;
+  transform:translate(2px,2px);
   box-shadow:2px 2px 0 var(--ink);
 }
-.download-ok:focus-visible{outline:3px solid var(--green);outline-offset:4px}
+.download-ok:focus-visible{outline:3px solid var(--green);outline-offset:3px}
 
+/* Animations */
 @keyframes zDOverlayIn{from{opacity:0}to{opacity:1}}
 @keyframes zDBackdropIn{from{opacity:0}to{opacity:1}}
-@keyframes zDTagIn{
-  0%{opacity:0;transform:rotate(3deg) translateY(-10px) scale(.85)}
-  65%{opacity:1;transform:rotate(3deg) translateY(2px) scale(1.05)}
-  100%{opacity:1;transform:rotate(3deg) translateY(0) scale(1)}
-}
-@keyframes zDMarkIn{
-  0%{opacity:0;transform:translate(-22px,8px) rotate(-8deg) scale(.55)}
-  100%{opacity:.72;transform:translate(-22px,8px) rotate(-8deg) scale(1)}
-}
-@keyframes zDTitleIn{
-  0%{opacity:0;transform:translateY(-22px) scale(.78) rotate(-2deg)}
-  48%{opacity:1;transform:translateY(4px) scale(1.08) rotate(.7deg)}
-  72%{transform:translateY(-1px) scale(.985) rotate(0)}
-  100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}
-}
-@keyframes zDPreviewIn{
-  0%{opacity:0;transform:translateY(38px) scale(.76) rotate(1.5deg)}
-  50%{opacity:1;transform:translateY(-8px) scale(1.025) rotate(-.5deg)}
-  73%{transform:translateY(2px) scale(.995) rotate(.1deg)}
-  100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}
-}
-@keyframes zDStickerIn{
-  0%{opacity:0;transform:rotate(-5deg) scale(.72) translateY(8px)}
-  65%{opacity:1;transform:rotate(-5deg) scale(1.08) translateY(-1px)}
-  100%{opacity:1;transform:rotate(-5deg) scale(1)}
-}
-@keyframes zDDotIn{
-  0%{opacity:0;transform:scale(.2) rotate(-30deg)}
-  65%{opacity:1;transform:scale(1.18) rotate(8deg)}
-  100%{opacity:1;transform:scale(1) rotate(0)}
-}
-@keyframes zDButtonIn{
-  0%{opacity:0;transform:translateY(18px) scale(.90)}
-  58%{opacity:1;transform:translateY(-3px) scale(1.045)}
-  78%{transform:translateY(1px) scale(.99)}
+@keyframes zDCardIn{
+  0%{opacity:0;transform:translateY(24px) scale(.96)}
+  60%{opacity:1;transform:translateY(-3px) scale(1.01)}
   100%{opacity:1;transform:translateY(0) scale(1)}
 }
-.download-overlay.closing .download-modal{animation:zDClose 300ms cubic-bezier(.2,.8,.2,1) both}
-.download-overlay.closing .download-overlay__backdrop{animation:zDBackdropOut 280ms ease-in both}
-@keyframes zDClose{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(10px) scale(.96)}}
+@keyframes zBadgePop{
+  0%{opacity:0;transform:scale(.4) rotate(-15deg)}
+  55%{opacity:1;transform:scale(1.15) rotate(4deg)}
+  100%{opacity:1;transform:scale(1) rotate(0)}
+}
+
+/* Closing */
+.download-overlay.closing .download-modal{
+  animation:zDCardOut 260ms cubic-bezier(.4,0,.2,1) both;
+}
+.download-overlay.closing .download-overlay__backdrop{
+  animation:zDBackdropOut 240ms ease-in both;
+}
+@keyframes zDCardOut{
+  from{opacity:1;transform:translateY(0) scale(1)}
+  to{opacity:0;transform:translateY(16px) scale(.97)}
+}
 @keyframes zDBackdropOut{from{opacity:1}to{opacity:0}}
 
 body.download-overlay-open .toast{display:none!important}
 
-/* Restore the recognizable ZiBrat save success: bounce + check badge. */
+/* Save float pop tetap sama */
 .save-float.z-save-pop{
   animation:zSaveButtonPop 300ms cubic-bezier(.18,.9,.2,1) both;
 }
@@ -1626,28 +1602,19 @@ body.download-overlay-open .toast{display:none!important}
   100%{opacity:1;transform:scale(1) rotate(0)}
 }
 
-@media(max-width:420px){
-  .download-overlay{padding-inline:10px}
-  .download-title{font-size:clamp(28px,9.2vw,40px);letter-spacing:-2.2px}
-  .download-preview-wrap{width:min(360px,91vw)}
-  .download-preview{max-height:55vh}
+@media(max-width:380px){
+  .download-modal{width:calc(100vw - 28px)}
+  .download-body{padding:18px 16px 16px}
+  .download-title{font-size:20px}
 }
 @media(prefers-reduced-motion:reduce){
-  .download-overlay,.download-overlay__backdrop,.download-title,.download-preview-wrap,.download-ok,
-  .download-overlay::after,.download-modal::before,.download-modal::after,
-  .download-preview-wrap::before,.download-preview-wrap::after,.download-ok::before,
-  .download-overlay.closing .download-modal,.download-overlay.closing .download-overlay__backdrop,
-  .save-float.z-save-pop,.save-float.z-save-pop svg,.save-float.z-save-pop::after{
+  .download-overlay,.download-overlay__backdrop,.download-modal,.download-badge{
     animation:none!important;transition:none!important
   }
   .download-overlay.open{opacity:1}
   .download-overlay__backdrop{opacity:1}
-  .download-title,.download-preview-wrap,.download-ok{opacity:1;transform:none}
-  .download-overlay::after{opacity:1;transform:rotate(3deg) translateY(0) scale(1)}
-  .download-modal::before,.download-modal::after{opacity:.72}
-  .download-preview-wrap::before{opacity:1;transform:rotate(-5deg) scale(1)}
-  .download-preview-wrap::after,.download-ok::before{opacity:1;transform:none}
-  .save-float.z-save-pop::after{opacity:1;transform:none}
+  .download-modal{opacity:1;transform:none}
+  .download-badge{opacity:1;transform:none}
 }
 </style>
 
@@ -1758,6 +1725,285 @@ body.download-overlay-open .toast{display:none!important}
   text-align:left !important;
 }
 </style>
+
+
+<style id="zibrat-brutalist-controls-v42">
+/* ===== Brutalist Control Redesign v42 =====
+   Override existing controls to match ZiBrat brutalist identity:
+   thick borders, physical shadows, bold shapes. */
+
+/* -- Slider: physical square thumb with thick border + shadow -- */
+input[type=range].slider{
+  -webkit-appearance:none;appearance:none;width:100%;background:transparent;cursor:pointer;height:34px;
+}
+input[type=range].slider:focus{outline:none}
+input[type=range].slider::-webkit-slider-runnable-track{
+  height:14px;background:var(--soft);border:3px solid var(--ink);border-radius:999px;
+}
+input[type=range].slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:34px;height:34px;background:var(--green);border:3px solid var(--ink);border-radius:10px;
+  margin-top:-12px;box-shadow:3px 3px 0 var(--ink);
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+input[type=range].slider:active::-webkit-slider-thumb{
+  transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);
+}
+input[type=range].slider::-moz-range-track{
+  height:14px;background:var(--soft);border:3px solid var(--ink);border-radius:999px;
+}
+input[type=range].slider::-moz-range-thumb{
+  width:34px;height:34px;background:var(--green);border:3px solid var(--ink);border-radius:10px;
+  box-shadow:3px 3px 0 var(--ink);
+}
+
+/* -- Badge / Value pill: thick border + shadow, not a thin pill -- */
+.value, .badge{
+  font-size:10px !important;padding:5px 10px !important;border-radius:999px !important;
+  background:var(--green) !important;border:3px solid var(--ink) !important;
+  box-shadow:2px 2px 0 var(--ink) !important;font-weight:900 !important;
+  letter-spacing:.2px !important;color:var(--ink) !important;display:inline-block !important;
+}
+
+/* -- Segmented control: thick container border, green thumb with border+shadow -- */
+.seg{
+  display:flex !important;gap:6px !important;background:var(--soft) !important;
+  border:3px solid var(--ink) !important;border-radius:16px !important;padding:4px !important;
+  position:relative !important;overflow:hidden !important;
+}
+.seg-thumb{
+  position:absolute !important;top:4px !important;bottom:4px !important;left:0 !important;z-index:0 !important;
+  border-radius:12px !important;background:var(--green) !important;border:3px solid var(--ink) !important;
+  box-shadow:2px 2px 0 var(--ink) !important;pointer-events:none !important;
+  transition:transform .22s var(--z-ease),width .22s var(--z-ease) !important;
+}
+.seg button{
+  position:relative !important;z-index:1 !important;flex:1 !important;border:0 !important;
+  background:transparent !important;border-radius:12px !important;padding:11px 4px !important;
+  font-size:10px !important;font-weight:900 !important;letter-spacing:.2px !important;color:#555 !important;
+  transition:transform .14s ease,color .18s ease !important;
+}
+.seg button.active{
+  background:transparent !important;color:var(--ink) !important;box-shadow:none !important;
+  transform:translate(-1px,-1px) !important;
+}
+.seg button:active{transform:scale(.985) !important}
+
+/* -- Dock: thick border + double shadow (black + green) -- */
+.dock{
+  left:50% !important;right:auto !important;
+  bottom:max(10px, env(safe-area-inset-bottom)) !important;
+  transform:translateX(-50%) !important;
+  width:min(470px, calc(100vw - 20px)) !important;
+  max-width:none !important;height:56px !important;
+  padding:4px !important;gap:4px !important;
+  border:3px solid var(--ink) !important;border-radius:20px !important;
+  background:color-mix(in srgb, var(--paper) 94%, transparent) !important;
+  box-shadow:4px 4px 0 var(--green), 0 10px 26px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08) !important;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.dock .tab{
+  height:48px !important;border-radius:15px !important;
+  padding:0 5px !important;gap:5px !important;
+  font-size:9px !important;font-weight:900 !important;letter-spacing:.15px !important;
+  color:#777 !important;background:transparent !important;border:0 !important;
+  box-shadow:none !important;transform:none !important;
+}
+.dock .tab svg{
+  width:20px !important;height:20px !important;stroke-width:2.5 !important;
+  stroke:currentColor !important;fill:none !important;
+  stroke-linecap:round !important;stroke-linejoin:round !important;
+}
+.dock .tab.active{
+  background:var(--green) !important;color:var(--ink) !important;
+  transform:none !important;
+  box-shadow:2px 2px 0 var(--ink), inset 0 1px 0 rgba(255,255,255,.34) !important;
+}
+.dock .tab:active{transform:translateY(1px) scale(.97) !important}
+
+/* -- Dark mode compatibility -- */
+.dark .seg{background:#222 !important}
+.dark .value,.dark .badge{background:var(--green) !important;color:var(--ink) !important}
+</style>
+<style id="zibrat-slider-drag-fix-v46">
+/* ===== V46 FIX: Slider tidak bisa digeser di WebView / XOS ===== */
+input[type=range].slider{
+  -webkit-appearance:none;
+  appearance:none;
+  width:100%;
+  height:44px;
+  background:transparent;
+  cursor:pointer;
+  /* V47: touch-action HARUS 'none', bukan 'pan-x'. 'pan-x' bikin browser
+     coba scroll halaman secara horizontal setiap kali disentuh, dan itu
+     BENTROK sama parent .control yang di-set 'pan-y' di bawah — dua arah
+     yang beda bikin browser malah mematikan gesture-nya sama sekali di
+     sebagian WebView (termasuk XOS). Ini akar dari bug "tidak bisa digeser". */
+  touch-action:none;
+  -webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
+  -webkit-user-drag:none;
+  padding:0;
+  margin:0;
+  border:0;
+  position:relative;
+  z-index:2;
+}
+input[type=range].slider:focus{outline:none}
+
+/* WebKit / Chrome / WebView XOS */
+input[type=range].slider::-webkit-slider-runnable-track{
+  height:14px;
+  background:var(--soft);
+  border:3px solid var(--ink);
+  border-radius:999px;
+}
+input[type=range].slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:34px;
+  height:34px;
+  background:var(--green);
+  border:3px solid var(--ink);
+  border-radius:10px;
+  margin-top:-11px;
+  box-shadow:3px 3px 0 var(--ink);
+  transition:transform .12s ease,box-shadow .12s ease;
+  min-width:34px;
+  min-height:34px;
+  cursor:grab;
+  pointer-events:auto;
+}
+input[type=range].slider:active::-webkit-slider-thumb{
+  transform:translate(2px,2px);
+  box-shadow:1px 1px 0 var(--ink);
+  cursor:grabbing;
+}
+
+/* Firefox fallback */
+input[type=range].slider::-moz-range-track{
+  height:14px;
+  background:var(--soft);
+  border:3px solid var(--ink);
+  border-radius:999px;
+}
+input[type=range].slider::-moz-range-thumb{
+  width:28px;
+  height:28px;
+  background:var(--green);
+  border:3px solid var(--ink);
+  border-radius:10px;
+  box-shadow:3px 3px 0 var(--ink);
+}
+
+/* Pastikan parent tidak memblokir sentuhan.
+   V47: samakan dengan child ('none'), jangan 'pan-y' — nilai yang beda
+   dengan input di dalamnya saling meniadakan (lihat catatan di atas). */
+.control:has(.slider){
+  touch-action:none;
+  pointer-events:auto;
+}
+
+/* V47 FIX: tombol warna & tombol lain kadang "tidak kepencet" di WebView
+   karena tap/drag pendek malah ditangkap sebagai gestur seleksi teks /
+   callout (menu "Copy/Share") bawaan WebView, bukan sebagai tap. Matikan
+   itu di semua tombol interaktif. */
+button,
+.swatch,
+.pill,
+.seg button,
+.wm-grid button,
+.dock .tab,
+.icon-btn,
+.action,
+.mini-tool,
+.ratio-trigger,
+.value.more-toggle{
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-user-drag:none;
+  touch-action:manipulation;
+}
+</style>
+
+<script id="zibrat-slider-pointer-fix-v47">
+/* ===== V47 FIX: drag slider via Pointer Events, jangan andalkan drag
+   bawaan <input type=range> ===== 
+   Beberapa WebView (XOS & sejenisnya) implementasi drag native-nya untuk
+   <input type=range> memang buggy/tidak konsisten. Daripada bergantung ke
+   situ, kita kendalikan sendiri lewat pointerdown/pointermove/pointerup:
+   posisi jari -> hitung value -> set value -> tembak event 'input' &
+   'change' seperti biasa, supaya semua kode lain (bindLiveControl, undo,
+   dst.) tetap jalan tanpa perlu diubah. Ini jalan berdampingan dengan
+   kode yang sudah ada, tidak menggantikan logikanya. */
+(function(){
+  function wireSlider(el){
+    if(el.dataset.zPointerWired) return;
+    el.dataset.zPointerWired = '1';
+    var dragging = false;
+
+    function valueFromClientX(clientX){
+      var rect = el.getBoundingClientRect();
+      var min = parseFloat(el.min || '0');
+      var max = parseFloat(el.max || '100');
+      var step = parseFloat(el.step || '1') || 1;
+      var pct = rect.width > 0 ? (clientX - rect.left) / rect.width : 0;
+      pct = Math.max(0, Math.min(1, pct));
+      var raw = min + pct * (max - min);
+      raw = Math.round((raw - min) / step) * step + min;
+      raw = Math.max(min, Math.min(max, raw));
+      // Rapikan floating point (mis. 79.99999999 -> 80)
+      var decimals = (String(step).split('.')[1] || '').length;
+      return decimals ? +raw.toFixed(decimals) : Math.round(raw);
+    }
+
+    function setFromClientX(clientX){
+      var v = valueFromClientX(clientX);
+      if(String(v) !== el.value){
+        el.value = String(v);
+        el.dispatchEvent(new Event('input', {bubbles:true}));
+      }
+    }
+
+    el.addEventListener('pointerdown', function(e){
+      dragging = true;
+      try{ el.setPointerCapture(e.pointerId); }catch(err){}
+      el.classList.add('z-slider-dragging');
+      setFromClientX(e.clientX);
+      e.preventDefault();
+    }, {passive:false});
+
+    el.addEventListener('pointermove', function(e){
+      if(!dragging) return;
+      setFromClientX(e.clientX);
+      e.preventDefault();
+    }, {passive:false});
+
+    function finish(e){
+      if(!dragging) return;
+      dragging = false;
+      el.classList.remove('z-slider-dragging');
+      el.dispatchEvent(new Event('change', {bubbles:true}));
+    }
+    el.addEventListener('pointerup', finish);
+    el.addEventListener('pointercancel', finish);
+  }
+
+  function wireAll(){
+    document.querySelectorAll('input[type=range].slider').forEach(wireSlider);
+  }
+  function start(){
+    wireAll();
+    // Amankan kalau ada slider yang dirender belakangan (mis. sheet dinamis).
+    new MutationObserver(wireAll).observe(document.body, {childList:true, subtree:true});
+  }
+  // Script ini ditaruh di <head>, jadi <body> belum ada saat baris ini
+  // jalan — tunggu DOM siap dulu supaya document.body tidak null.
+  if(document.body){ start(); }
+  else{ document.addEventListener('DOMContentLoaded', start); }
+})();
+</script>
 </head>
 <body>
 <div id="welcomeScreen" class="welcome-screen" role="dialog" aria-modal="true" aria-label="Selamat datang di ZiBrat">
@@ -2050,26 +2296,18 @@ body.download-overlay-open .toast{display:none!important}
 <nav class="dock" id="dock" aria-label="Aksi cepat ZiBrat">
   <button class="tab" data-action="undo" aria-label="Mundur" title="Mundur">
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M8.5 7.2H4.8v3.7"/>
-      <path d="M4.9 10.8A8 8 0 1 0 8.1 5.1"/>
-      <path d="M8.5 7.2 5.8 9.9"/>
+      <path d="M3 12h12M9 6l6 6-6 6"/>
     </svg>
-    <span>UNDO</span>
   </button>
   <button class="tab" data-action="redo" aria-label="Maju lagi" title="Maju lagi">
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M15.5 7.2h3.7v3.7"/>
-      <path d="M19.1 10.8A8 8 0 1 1 15.9 5.1"/>
-      <path d="M15.5 7.2 18.2 9.9"/>
+      <path d="M21 12H9M15 6l-6 6 6 6"/>
     </svg>
-    <span>REDO</span>
   </button>
   <button class="tab" data-action="utility" aria-label="Lainnya" title="Lainnya">
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 3.8 15.1 8.9 20.2 12l-5.1 3.1L12 20.2 8.9 15.1 3.8 12l5.1-3.1L12 3.8Z"/>
-      <path d="M12 8.1 15.9 12 12 15.9 8.1 12 12 8.1Z"/>
+      <circle cx="12" cy="6" r="1.8"/><circle cx="6" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/><circle cx="12" cy="18" r="1.8"/>
     </svg>
-    <span>LAINNYA</span>
   </button>
 </nav>
 
@@ -2088,12 +2326,18 @@ body.download-overlay-open .toast{display:none!important}
 <div class="download-overlay" id="downloadOverlay" aria-hidden="true">
   <div class="download-overlay__backdrop"></div>
   <div class="download-modal" role="dialog" aria-modal="true" aria-labelledby="downloadTitle">
-    <div class="download-title" id="downloadTitle">ANJAY KESIMPEN</div>
-    <div class="download-preview-wrap">
-      <div class="download-preview-shadow" aria-hidden="true"></div>
-      <img class="download-preview" id="downloadPreview" alt="Hasil ZiBrat yang baru disimpan">
+    <div class="download-preview-area">
+      <img class="download-preview-img" id="downloadPreview" alt="Hasil ZiBrat yang baru disimpan">
     </div>
-    <button class="download-ok" id="downloadOk" type="button">OKE, BAIK</button>
+    <div class="download-body">
+      <div class="download-badge" aria-hidden="true">✓</div>
+      <h2 class="download-title" id="downloadTitle">Udah <span class="download-title-accent">Kesimpen!</span></h2>
+      <div class="download-meta" id="downloadMeta">
+        <span class="download-meta-tag">PNG</span>
+        <span class="download-meta-tag" id="downloadDim">1080×1080</span>
+      </div>
+      <button class="download-ok" id="downloadOk" type="button">Oke, mantap</button>
+    </div>
   </div>
 </div>
 
@@ -2217,6 +2461,7 @@ body.download-overlay-open .toast{display:none!important}
     const overlay = $('downloadOverlay');
     const img = $('downloadPreview');
     const ok = $('downloadOk');
+    const dimTag = $('downloadDim');
     if(!overlay || !img || !ok || !blob) return;
 
     if(downloadPreviewUrl){
@@ -2226,6 +2471,9 @@ body.download-overlay-open .toast{display:none!important}
     downloadPreviewUrl = URL.createObjectURL(blob);
     img.src = downloadPreviewUrl;
 
+    // Update metadata dimension tag from canvas size
+    if(dimTag && c){ dimTag.textContent = c.width + '×' + c.height; }
+
     overlay.classList.remove('closing');
     overlay.classList.remove('open');
     void overlay.offsetWidth;
@@ -2233,9 +2481,8 @@ body.download-overlay-open .toast{display:none!important}
     overlay.setAttribute('aria-hidden','false');
     document.body.classList.add('download-overlay-open');
 
-    // Focus after the entrance motion starts so the button is ready without
-    // stealing the visual landing moment of the preview.
-    setTimeout(() => { try{ ok.focus({preventScroll:true}); }catch(e){} }, 720);
+    // Focus after the entrance motion settles
+    setTimeout(() => { try{ ok.focus({preventScroll:true}); }catch(e){} }, 520);
   }
 
   function closeDownloadOverlay(){
@@ -2255,7 +2502,7 @@ body.download-overlay-open .toast{display:none!important}
         downloadPreviewUrl = null;
       }
       $('btnSaveFloat')?.focus({preventScroll:true});
-    }, 290);
+    }, 260);
   }
   function hexOk(v){ return /^#[0-9a-fA-F]{6}$/.test((v||'').trim()); }
   function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
@@ -2500,7 +2747,7 @@ body.download-overlay-open .toast{display:none!important}
     return {W,H,boxW,boxH,x,y,size,lines,lineH,padX,padY};
   }
 
-  const EMOJIS = ['🔥','✨','💀','😭','🙏','💯','⭐','🎉','😤','⚡'];
+  const EMOJIS = ['🔥','✨','💀','😭','🙏','💯','⭐','🎉','😤','⚡','❤️','😂','😍','🥺','😎','🤔','👀','💔','😅','🙄','🤣','😩','😳','🥹','😔','🫡','👍','👏','🙌','💪','✌️','🤝','😢','😡','🤯','🥳','😏','🫶','💕','🌟','☀️','🌈','🍀','🎶','📸','💅','🚀','👑','🥰'];
   let selectedStickerId = null;
   let stickerGesture = null;
 
@@ -2619,22 +2866,56 @@ body.download-overlay-open .toast{display:none!important}
     try{e.currentTarget.releasePointerCapture(e.pointerId)}catch{}
     renderStickers();
   }
+  const _emojiSpriteCache = new Map();
+  function getEmojiSprite(emoji){
+    if(_emojiSpriteCache.has(emoji)) return _emojiSpriteCache.get(emoji);
+    const S = 256, FONT = Math.round(S*0.72);
+    const off = document.createElement('canvas');
+    off.width = S; off.height = S;
+    const octx = off.getContext('2d');
+    octx.clearRect(0,0,S,S);
+    octx.font = `${FONT}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+    octx.textAlign='center'; octx.textBaseline='middle';
+    octx.fillText(emoji, S/2, S/2);
+    const data = octx.getImageData(0,0,S,S).data;
+    let minX=S,minY=S,maxX=-1,maxY=-1;
+    for(let y=0;y<S;y++){
+      for(let x=0;x<S;x++){
+        if(data[(y*S+x)*4+3] > 10){
+          if(x<minX)minX=x; if(x>maxX)maxX=x;
+          if(y<minY)minY=y; if(y>maxY)maxY=y;
+        }
+      }
+    }
+    if(maxX<0){ minX=0;minY=0;maxX=S-1;maxY=S-1; }
+    const sprite = {canvas:off, S, FONT, cx:(minX+maxX)/2, cy:(minY+maxY)/2};
+    _emojiSpriteCache.set(emoji, sprite);
+    return sprite;
+  }
   function drawStickersExport(W,H,sx,sy){
     ctx.save();
     ctx.scale(sx,sy);
-    ctx.font='40px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
-    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#000';
     (state.stickers || []).forEach(st=>{
       const x=W*(+st.xPct/100), y=H*(+st.yPct/100);
+      const size=Math.max(18,+st.size||40);
+      const sp=getEmojiSprite(st.emoji);
+      // sp was rendered with font-size = sp.FONT inside an sp.S canvas;
+      // scale that whole render so it matches the sticker's target
+      // font-size, then translate using the emoji's REAL ink-pixel
+      // center (sp.cx/cy) so the visual center lands exactly on (x,y) —
+      // this is what actually matches the CSS preview's visual center,
+      // unlike font metrics (ascent/descent) which are unreliable for
+      // color emoji glyphs.
+      const scale = size / sp.FONT;
       ctx.save();
       ctx.translate(x,y);
       ctx.rotate((+st.rot||0)*Math.PI/180);
-      ctx.font=`${Math.max(18,+st.size||40)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-      ctx.fillText(st.emoji,0,0);
+      ctx.drawImage(sp.canvas, -sp.cx*scale, -sp.cy*scale, sp.S*scale, sp.S*scale);
       ctx.restore();
     });
     ctx.restore();
   }
+
 
   function updatePreview(){
     // Keep the stage's on-screen shape and the export canvas's pixel shape
@@ -5719,21 +6000,145 @@ body.download-overlay-open .toast{display:none!important}
   }
 
   function openUtilitySheet(){
+    const isDark = document.body.classList.contains('dark');
     openSheet('LAINNYA', `
-      <div class="control">
-        <div class="label"><span>tema</span><span class="value">${document.body.classList.contains('dark')?'gelap':'terang'}</span></div>
-        <button class="action secondary" id="sheetTheme">${document.body.classList.contains('dark')?'PAKAI TEMA TERANG':'PAKAI TEMA GELAP'}</button>
+      <style>
+        .util-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .util-grid .action{
+          min-height:54px;font-size:11px;font-weight:900;letter-spacing:.25px;text-transform:uppercase;
+          border:3px solid var(--ink);border-radius:14px;
+          box-shadow:4px 4px 0 var(--ink);
+          background:#fff;
+          gap:8px;
+          transition:transform .12s ease,box-shadow .12s ease,background .12s ease
+        }
+        .util-grid .action:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+        .util-grid .action svg{width:20px;height:20px;stroke:var(--ink);stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none}
+        .util-full{grid-column:1 / -1}
+        .util-sep{height:3px;background:var(--ink);opacity:.1;border-radius:0;margin:6px 0}
+        .util-section{font-size:10px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;opacity:.6;margin:4px 2px 8px}
+        .dark .util-grid .action{background:#222}
+      </style>
+
+      <div class="util-section">⚡ Cepat</div>
+      <div class="util-grid">
+        <button class="action secondary" id="sheetTheme">
+          <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <span>${isDark?'TEMA TERANG':'TEMA GELAP'}</span>
+        </button>
+        <button class="action secondary" id="sheetClearStickers">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14Z"/></svg>
+          <span>HAPUS STICKER</span>
+        </button>
+        <button class="action secondary" id="sheetReset">
+          <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          <span>RESET SEMUA</span>
+        </button>
+        <button class="action secondary" id="sheetClearHistory">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span>HAPUS RIWAYAT</span>
+        </button>
       </div>
-      <div class="action-row">
-        <button class="action secondary" id="sheetReset">BALIKIN SEMUA</button>
-        <button class="action secondary" id="sheetClearHistory">HAPUS RIWAYAT</button>
+
+      <div class="util-sep"></div>
+      <div class="util-section">💾 Data</div>
+      <div class="util-grid">
+        <button class="action secondary" id="sheetExport">
+          <svg viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M7 10l5-5 5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
+          <span>SIMPAN STYLE</span>
+        </button>
+        <button class="action secondary" id="sheetImport">
+          <svg viewBox="0 0 24 24"><path d="M12 9V3"/><path d="M7 14l5 5 5-5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
+          <span>MUAT STYLE</span>
+        </button>
       </div>
-      <div class="help" style="margin-top:10px">Fungsi yang jarang dipakai disimpan di sini biar dock utama tetap bersih.</div>
+
+      <div class="util-sep"></div>
+      <div class="util-section">ℹ️ Info</div>
+      <div class="util-grid">
+        <button class="action secondary" id="sheetTips">
+          <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+          <span>TIPS KEYBOARD</span>
+        </button>
+        <button class="action secondary" id="sheetAbout">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <span>TENTANG</span>
+        </button>
+      </div>
+
+      <div class="help" style="margin-top:12px">
+        Semua pengaturan & riwayat tersimpan lokal di perangkat. Backup style kamu biar nggak ilang kalau hapus cache.
+      </div>
     `);
     $('sheetTheme').onclick=()=>{ document.body.classList.toggle('dark'); localStorage.setItem('zibrat_theme',document.body.classList.contains('dark')?'dark':'light'); flashOk($('sheetTheme')); openUtilitySheet(); };
-    $('sheetReset').onclick=()=>{ flashOk($('sheetReset')); resetAll(); openUtilitySheet(); };
+    $('sheetClearStickers').onclick=()=>{ flashOk($('sheetClearStickers')); clearAllStickers(); };
+    $('sheetReset').onclick=()=>{ flashOk($('sheetReset')); resetAll(); };
     $('sheetClearHistory').onclick=()=>{ localStorage.removeItem('brat_history_v12'); flashOk($('sheetClearHistory')); renderHistory(); toast('Riwayat dihapus'); };
+    $('sheetExport').onclick=()=>{ flashOk($('sheetExport')); exportSettings(); };
+    $('sheetImport').onclick=()=>{ flashOk($('sheetImport')); importSettings(); };
+    $('sheetTips').onclick=()=>{ flashOk($('sheetTips')); showKeyboardTips(); };
+    $('sheetAbout').onclick=()=>{ flashOk($('sheetAbout')); showAbout(); };
   }
+
+function clearAllStickers(){
+  if(!(state.stickers && state.stickers.length)) return toast('Belum ada sticker');
+  pushUndo();
+  state.stickers = [];
+  selectedStickerId = null;
+  updatePreview();
+  toast('Semua sticker dihapus');
+}
+function exportSettings(){
+  const payload = snapshot();
+  try{
+    navigator.clipboard.writeText(payload);
+    toast('Pengaturan disalin ke clipboard');
+  }catch(e){
+    toast('Gagal menyalin pengaturan');
+  }
+}
+function importSettings(){
+  const raw = prompt('Tempel kode pengaturan ZiBrat di sini:');
+  if(!raw) return;
+  try{
+    const parsed = JSON.parse(raw);
+    pushUndo();
+    Object.assign(state, parsed);
+    state.stickers = normalizeStickers(state.stickers);
+    updatePreview();
+    toast('Pengaturan dimuat');
+  }catch(e){ toast('Kode tidak valid'); }
+}
+function showKeyboardTips(){
+  openSheet('TIPS KEYBOARD', `
+    <div class="control" style="margin-top:0">
+      <div class="label"><span>shortcut</span><span class="value">keyboard</span></div>
+      <div class="help" style="line-height:1.6">
+        <b>R</b> atau <b>Space</b> — Buat acak<br>
+        <b>S</b> — Simpan PNG<br>
+        <b>Ctrl / ⌘ + Z</b> — Undo<br>
+        <b>Ctrl / ⌘ + Y</b> — Redo<br>
+        <b>Delete / Backspace</b> — Hapus sticker yang dipilih
+      </div>
+    </div>
+    <div class="help" style="margin-top:10px">Semua shortcut aktif saat tidak sedang mengetik di textarea.</div>
+  `);
+}
+function showAbout(){
+  openSheet('TENTANG ZIBRAT', `
+    <div class="control" style="margin-top:0;text-align:center">
+      <div style="font-size:28px;font-weight:900;letter-spacing:-1px;margin-bottom:6px">Zi<span style="background:var(--green);padding:0 6px;border-radius:6px;border:2.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink)">Brat</span></div>
+      <div style="font-size:11px;opacity:.75;margin-bottom:12px">v43 • bikin brat sendiri • tanpa ribet</div>
+    </div>
+    <div class="help" style="line-height:1.6">
+      ZiBrat adalah generator gambar "brat" style yang berjalan sepenuhnya di browser. Nggak perlu login, nggak perlu server. Semua data tersimpan lokal di perangkat kamu.
+    </div>
+    <div class="help" style="margin-top:10px;line-height:1.6">
+      Font: <b>Nunito Sans</b> & <b>Roboto Condensed</b> (Google Fonts)<br>
+      Warna: <b>#8ACE00</b> — hijau neon signature
+    </div>
+  `);
+}
 
   window.__zibratOpenUtility = openUtilitySheet;
 
@@ -6129,6 +6534,106 @@ body.download-overlay-open .toast{display:none!important}
 })();
 </script>
 
+<style id="zibrat-dock-sticker-v45">
+/* ===== ZiBrat Dock Sticker Stack v45 =====
+   Transparent background (sticker float), chunky icons, wow landing.
+*/
+
+@keyframes zStickerLand{
+  0%{opacity:0;transform:translateY(-40px) rotate(var(--sticker-rot,0deg)) scale(0.7)}
+  55%{opacity:1;transform:translateY(4px) rotate(var(--sticker-rot,0deg)) scale(1.06)}
+  78%{transform:translateY(-2px) rotate(var(--sticker-rot,0deg)) scale(0.98)}
+  100%{opacity:1;transform:translateY(0) rotate(var(--sticker-rot,0deg)) scale(1)}
+}
+@keyframes zStickerPop{
+  0%{transform:rotate(var(--sticker-rot,0deg)) scale(1)}
+  35%{transform:rotate(0deg) scale(0.92)}
+  65%{transform:rotate(0deg) scale(1.08)}
+  100%{transform:rotate(0deg) scale(1)}
+}
+
+.dock{
+  position:fixed !important;
+  left:50% !important; right:auto !important; top:auto !important;
+  bottom:max(14px, env(safe-area-inset-bottom)) !important;
+  transform:translateX(-50%) !important;
+  width:auto !important; max-width:none !important; height:auto !important;
+  padding:0 !important; margin:0 !important; gap:0 !important;
+  display:flex !important; align-items:center !important; justify-content:center !important;
+  gap:12px !important;
+  background:transparent !important; border:0 !important; border-radius:0 !important;
+  box-shadow:none !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  z-index:9999 !important;
+}
+
+.dock .tab{
+  position:relative !important;
+  width:66px !important; height:66px !important;
+  min-width:0 !important; min-height:0 !important;
+  padding:0 !important; margin:0 !important; border:0 !important;
+  background:#fff !important;
+  border:3px solid var(--ink) !important; border-radius:16px !important;
+  box-shadow:4px 4px 0 var(--ink) !important;
+  display:grid !important; place-items:center !important;
+  cursor:pointer !important;
+  transition:transform .12s cubic-bezier(.2,.9,.25,1), box-shadow .12s cubic-bezier(.2,.9,.25,1), background .14s ease !important;
+  -webkit-tap-highlight-color:transparent !important;
+  flex:none !important;
+  animation:zStickerLand .55s cubic-bezier(.22,.8,.24,1) both;
+}
+
+/* Staggered landing per sticker */
+.dock .tab:nth-child(1){ --sticker-rot:-2deg; transform:rotate(-2deg); animation-delay:.08s; }
+.dock .tab:nth-child(2){ --sticker-rot:1deg; transform:rotate(1deg) translateY(-2px); animation-delay:.18s; }
+.dock .tab:nth-child(3){ --sticker-rot:2deg; transform:rotate(2deg); animation-delay:.28s; }
+
+/* Active: green fill + pop */
+.dock .tab.active{
+  background:var(--green) !important;
+  transform:rotate(0deg) translateY(0) !important;
+  box-shadow:4px 4px 0 var(--ink) !important;
+  animation:zStickerPop .32s cubic-bezier(.22,.8,.24,1) both;
+}
+
+/* Press: shadow collapses, rotation straightens */
+.dock .tab:active{
+  transform:translate(2px,2px) rotate(0deg) scale(0.95) !important;
+  box-shadow:2px 2px 0 var(--ink) !important;
+}
+.dock .tab.active:active{
+  transform:translate(2px,2px) rotate(0deg) scale(0.95) !important;
+  box-shadow:2px 2px 0 var(--ink) !important;
+}
+
+/* Chunky icons */
+.dock .tab svg{
+  width:26px !important; height:26px !important;
+  stroke:var(--ink) !important; stroke-width:2.9 !important;
+  fill:none !important; stroke-linecap:round !important; stroke-linejoin:round !important;
+  pointer-events:none !important;
+  flex:none !important;
+}
+
+/* No labels */
+.dock .tab span{ display:none !important; }
+.dock .tab::after{ display:none !important; }
+
+/* Dark mode */
+.dark .dock .tab{ background:#222 !important; }
+.dark .dock .tab.active{ background:var(--green) !important; }
+
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce){
+  .dock .tab{animation:none !important}
+}
+
+/* Compact */
+@media(max-width:380px){
+  .dock{ gap:10px !important; bottom:max(12px, calc(env(safe-area-inset-bottom) + 4px)) !important; }
+  .dock .tab{ width:58px !important; height:58px !important; border-radius:14px !important; }
+  .dock .tab svg{ width:24px !important; height:24px !important; stroke-width:2.8 !important; }
+}
+</style>
 </body>
 <!-- v9: direct preview manipulation; export/render code intentionally unchanged -->
 <!-- v10: fixed updatePreview references; one direct manipulation system; export untouched -->
